@@ -1,29 +1,14 @@
 #include <iostream>
 
 #include "LongInt.h"
-//#include "LongInt.cpp"
-//#include <gmp.h>
 #include "LongInt.cpp"
 
 using namespace std;
 
 #define ASSERT_BOOL(cond) {if (!(cond)) return false; cout << "OK\n"; }
-//#define ASSERT(left, right) { \
-//    if (right != left) {\
-//        cout << "Expected: " << right.to_string() << "\n\tGot: " << left.to_string() << '\n';\
-//        return false;\
-//    } \
-//    cout << "OK\n"; \
-//}
-
 #define ASSERT(left, right, description) { \
     r &= assert(left, right, description); \
 }
-
-//#define ASSERT(left, right) { \
-//    if (!assert(left, right)) \
-//        return false; \
-//}
 
 template<UINT n>
 bool assert(const LongInt<n> &left, const LongInt<n> &right, const std::string &description) {
@@ -63,8 +48,8 @@ bool test() {
     cout << "Checkpoint 3\n";
     ASSERT_BOOL(a.to_string(10) == "4294967298")
     ASSERT(1 * a, a, "*")
-//    ASSERT(LongInt<32>("1100", 2) / LongInt<32>("100", 2), LongInt<32>("3"), "/")
-//    ASSERT(LongInt<32>(16) / LongInt<32>(2), LongInt<32>(8), "/")
+    ASSERT(LongInt<32>("1100", 2) / LongInt<32>("100", 2), LongInt<32>("3"), "/")
+    ASSERT(LongInt<32>(16) / LongInt<32>(2), LongInt<32>(8), "/")
 
     cout << "Random tests:\n";
     LongInt<192> r1("13860852903647110680");

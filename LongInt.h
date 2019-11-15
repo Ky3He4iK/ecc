@@ -36,14 +36,13 @@ private:
     std::array<UINT, ARR_SIZE> value{0};
     // array that represents this number. Big-endian (?)
     UINT len = ARR_SIZE;
+    bool overflowed = false;
+
+    void set_overflowed(bool val = true);
 
     static char itoc(int i);
 
     static int ctoi(char c);
-
-    static bool mult_cmp(const LongInt<bits_num> &a, const LongInt<bits_num> &b, const LongInt<bits_num> &third);
-
-    static std::pair<LongInt<bits_num>, bool> shift_overflow(const LongInt<bits_num> &a, UINT other);
 
 public:
 //    const UINT ARR_SIZE = ARR_SIZE;
@@ -76,6 +75,8 @@ public:
     UINT get_bits_count() const;
 
     UINT get_len() const;
+
+    bool get_overflowed() const;
 
     LongInt<bits_num> operator+(const LongInt<bits_num> &other) const;
 
@@ -128,9 +129,9 @@ public:
 
     UINT operator%(UINT other) const;
 
-    LongInt<bits_num> operator%=(const LongInt<bits_num> &other);
+    LongInt<bits_num> &operator%=(const LongInt<bits_num> &other);
 
-    LongInt<bits_num> operator%=(UINT other);
+    LongInt<bits_num> &operator%=(UINT other);
 
 
     bool operator==(const LongInt<bits_num> &other) const;
