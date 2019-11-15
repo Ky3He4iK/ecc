@@ -172,52 +172,24 @@ LongInt<bits_num> LongInt<bits_num>::operator+(UINT other) const {
 
 template<UINT bits_num>
 LongInt<bits_num> &LongInt<bits_num>::operator+=(const LongInt<bits_num> &other) {
-//    UINT o_v = 0;
-//    UINT o_v2;
-    bool ov = false;
+    uint64_t buf = 0;
     FOR_IND_REVERSE(i) {
-//        o_v2 = o_v;
-        UINT o_v = value[i];
-        value[i] += other[i];
-        if (ov)
-            value[i]++;
-        ov = value[i] < o_v;
-//        if (i < len - 1 && value[i + 1] < o_v2) {
-//            value[i]++;
-////            o_v = value[i];
-//            for (UINT j = i; j != 0; j--) {
-//                if (value[j] == 0) {
-//                    value[j - 1]++;
-////                    if (j == i)
-//
-//                } else
-//                    break;
-//            }
-//        }
+        buf = buf + other[i] + (uint64_t) value[i];
+        value[i] = buf;
+        buf >>= BITS_BASE;
     }
     return *this;
 }
 
 template<UINT bits_num>
 LongInt<bits_num> &LongInt<bits_num>::operator+=(UINT other) {
-    UINT o_v = 0;
-    UINT o_v2;
+    uint64_t buf = 0;
     FOR_IND_REVERSE(i) {
-        o_v2 = o_v;
-        o_v = value[i];
+        buf = buf + (uint64_t) value[i];
         if (i == len - 1)
-            value[i] += other;
-        else if (value[i + 1] < o_v2) {
-            value[i]++;
-//            for (UINT j = i; j != 0; j--) {
-//                if (value[j] == 0) {
-//                    value[j - 1]++;
-//                    if (j == i)
-
-//                } else
-//                    break;
-//            }
-        }
+            buf += other;
+        value[i] = buf;
+        buf >>= BITS_BASE;
     }
     return *this;
 }
@@ -239,27 +211,24 @@ LongInt<bits_num> LongInt<bits_num>::operator-(UINT other) const {
 
 template<UINT bits_num>
 LongInt<bits_num> &LongInt<bits_num>::operator-=(const LongInt<bits_num> &other) {
-    bool ov = false;
+    uint64_t buf = 0;
     FOR_IND_REVERSE(i) {
-        UINT o_v = value[i];
-        value[i] -= other[i];
-        if (ov)
-            value[i]--;
-        ov = value[i] > o_v;
+        buf = (uint64_t) value[i] - other[i] - buf;
+        value[i] = buf;
+        buf = (buf >> BITS_BASE) & (UINT)1;
     }
     return *this;
 }
 
 template<UINT bits_num>
 LongInt<bits_num> &LongInt<bits_num>::operator-=(UINT other) {
-    bool ov = false;
+    uint64_t buf = 0;
     FOR_IND_REVERSE(i) {
-        UINT o_v = value[i];
+        buf = (uint64_t) value[i] - buf;
         if (i == len - 1)
-            value[i] -= other;
-        if (ov)
-            value[i]--;
-        ov = value[i] > o_v;
+            buf -= other;
+        value[i] = buf;
+        buf = (buf >> BITS_BASE) & (UINT)1;
     }
     return *this;
 }
@@ -410,7 +379,8 @@ LongInt<bits_num> LongInt<bits_num>::operator%=(UINT other) {
 
 template<UINT bits_num>
 bool LongInt<bits_num>::operator==(const LongInt<bits_num> &other) const {
-    FOR_IND(i)if (value[i] != other[i])
+    FOR_IND(i)
+        if (value[i] != other[i])
             return false;
     return true;
 }
@@ -426,7 +396,8 @@ bool LongInt<bits_num>::operator==(UINT other) const {
 
 template<UINT bits_num>
 bool LongInt<bits_num>::operator!=(const LongInt<bits_num> &other) const {
-    FOR_IND(i)if (value[i] != other[i])
+    FOR_IND(i)
+        if (value[i] != other[i])
             return true;
     return false;
 }
@@ -442,7 +413,8 @@ bool LongInt<bits_num>::operator!=(UINT other) const {
 
 template<UINT bits_num>
 bool LongInt<bits_num>::operator>(const LongInt<bits_num> &other) const {
-    FOR_IND(i)if (value[i] > other[i])
+    FOR_IND(i)
+        if (value[i] > other[i])
             return true;
         else if (value[i] < other[i])
             return false;
@@ -460,7 +432,8 @@ bool LongInt<bits_num>::operator>(UINT other) const {
 
 template<UINT bits_num>
 bool LongInt<bits_num>::operator>=(const LongInt<bits_num> &other) const {
-    FOR_IND(i)if (value[i] > other[i])
+    FOR_IND(i)
+        if (value[i] > other[i])
             return true;
         else if (value[i] < other[i])
             return false;
@@ -478,7 +451,8 @@ bool LongInt<bits_num>::operator>=(UINT other) const {
 
 template<UINT bits_num>
 bool LongInt<bits_num>::operator<(const LongInt<bits_num> &other) const {
-    FOR_IND(i)if (value[i] < other[i])
+    FOR_IND(i)
+        if (value[i] < other[i])
             return true;
         else if (value[i] > other[i])
             return false;
@@ -496,7 +470,8 @@ bool LongInt<bits_num>::operator<(UINT other) const {
 
 template<UINT bits_num>
 bool LongInt<bits_num>::operator<=(const LongInt<bits_num> &other) const {
-    FOR_IND(i)if (value[i] < other[i])
+    FOR_IND(i)
+        if (value[i] < other[i])
             return true;
         else if (value[i] > other[i])
             return false;
