@@ -238,6 +238,8 @@ public:
 
     LongInt<bits_num> &operator=(int other);
 
+    LongInt<bits_num> operator-() const;
+
     UINT &operator[](UINT index);
 
     UINT operator[](UINT index) const;

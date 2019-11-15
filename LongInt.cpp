@@ -36,11 +36,10 @@ LongInt<bits_num> LongInt<bits_num>::changeLen(const LongInt<old_bits_num> &othe
     LongInt<bits_num> res;
     UINT len = res.get_len();
     UINT o_len = other.get_len();
-    if (len < o_len)
-        for (UINT i = 0; i < len; i++)
+    for (UINT i = 0; i < std::min(len, o_len); i++)
+        if (len < o_len)
             res[i] = other[i + o_len - len];
-    else
-        for (UINT i = 0; i < o_len; i++)
+        else
             res[i + len - o_len] = other[i];
     return res;
 }
@@ -51,16 +50,16 @@ bool
 LongInt<bits_num>::mult_cmp(const LongInt<bits_num> &a, const LongInt<bits_num> &b, const LongInt<bits_num> &third) {
     LongInt o_r((UINT) 0);
     std::pair<LongInt<bits_num>, bool> res;
-    bool overflow = false;
     UINT len = a.get_len();
-    for (UINT i = 0; i < len && !overflow; i++) {
+    FOR_IND(i) {
         res = shift_overflow(a * b[i], (len - i - 1) * BITS_BASE);
-        overflow |= res.first + o_r < o_r || ((res.first == 0) != (b[i] == 0)) || res.second;
+        if (res.first + o_r < o_r || ((res.first == 0) != (b[i] == 0)) || res.second)
+            return true;
         o_r += res.first;
         if (o_r > third)
             return true;
     }
-    return overflow;
+    return false;
 }
 
 
@@ -68,7 +67,6 @@ template<UINT bits_num>
 std::pair<LongInt<bits_num>, bool> LongInt<bits_num>::shift_overflow(const LongInt<bits_num> &a, UINT other) {
     UINT shift_b = other / BITS_BASE, shift_s = other % BITS_BASE;
     LongInt res;
-    bool of = false;
     UINT len = a.get_len();
     FOR_IND_REVERSE(i) {
         UINT ni = i + shift_b;
@@ -79,13 +77,9 @@ std::pair<LongInt<bits_num>, bool> LongInt<bits_num>::shift_overflow(const LongI
         } else
             res[i] = 0;
     }
-    if (shift_s)
-        for (UINT i = 0; i < shift_b + 1; i++)
-            of |= a[i] >> (BITS_BASE - shift_s);
-    else
-        for (UINT i = 0; i < shift_b; i++)
-            of |= a[i];
-
+    bool of = false;
+    for (UINT i = 0; i < shift_b + (shift_s != 0); i++)
+        of |= a[i] >> ((BITS_BASE - shift_s) % BITS_BASE);
     return std::make_pair(res, of);
 }
 
@@ -115,9 +109,8 @@ std::string LongInt<bits_num>::to_string(UINT radix, bool group) const {
     while (tmp != 0) {
         res.push_back(itoc(tmp % radix));
         tmp /= (radix);
-        if (group && l % 4 == 0 && l != get_bits_count())
+        if (group && l++ % 4 == 0)
             res.push_back('_');
-        l++;
     }
     if (!res.empty() && res.back() == '_')
         res.pop_back();
@@ -145,9 +138,8 @@ UINT LongInt<bits_num>::get_len() const {
 
 template<UINT bits_num>
 void LongInt<bits_num>::set_bit(UINT pos, bool val) {
-    UINT mask = ((UINT) -1) - ((UINT) 1 << (pos % BITS_BASE));
-    value[pos / BITS_BASE] &= mask;
-    value[pos / BITS_BASE] |= (val << (pos % BITS_BASE));
+    UINT mask = UINT_MAX - ((UINT) 1 << (pos % BITS_BASE));
+    value[pos / BITS_BASE] = (value[pos / BITS_BASE] & mask) | (val << (pos % BITS_BASE));
 }
 
 template<UINT bits_num>
@@ -215,7 +207,7 @@ LongInt<bits_num> &LongInt<bits_num>::operator-=(const LongInt<bits_num> &other)
     FOR_IND_REVERSE(i) {
         buf = (uint64_t) value[i] - other[i] - buf;
         value[i] = buf;
-        buf = (buf >> BITS_BASE) & (UINT)1;
+        buf = (buf >> BITS_BASE) & (UINT) 1;
     }
     return *this;
 }
@@ -228,7 +220,7 @@ LongInt<bits_num> &LongInt<bits_num>::operator-=(UINT other) {
         if (i == len - 1)
             buf -= other;
         value[i] = buf;
-        buf = (buf >> BITS_BASE) & (UINT)1;
+        buf = (buf >> BITS_BASE) & (UINT) 1;
     }
     return *this;
 }
@@ -244,9 +236,6 @@ LongInt<bits_num> LongInt<bits_num>::operator/(const LongInt<bits_num> &other) {
     // algorithm from wiki doesn't work correctly. Using binary search instead
     while (ub - lb > 1 && ub > lb) {
         LongInt mid = ((ub - lb) >> 1) + lb;
-        bool dbg = bits_num == 256 && other[LAST] == 1 && mid[1] == 0 && mid[0] == 1;
-//        if (bits_num == 256 && other[LAST] == 1 && mid[0] <= 1)
-//            std::cerr << ub.to_string() << ' ' << lb.to_string() << ' ' << mid.to_string() << '\n';
         if (mult_cmp(other, mid, *this))
             ub = mid;
         else
@@ -264,11 +253,7 @@ LongInt<bits_num> LongInt<bits_num>::operator/(UINT other) const {
 
 template<UINT bits_num>
 LongInt<bits_num> &LongInt<bits_num>::operator/=(const LongInt<bits_num> &other) {
-    if (other == 0)
-        throw std::invalid_argument("Cannot divide by zero");
-
-    LongInt<bits_num> res = *this / other;
-    FOR_IND(i)value[i] = res[i];
+    *this = *this / other;
     return *this;
 }
 
@@ -279,7 +264,7 @@ LongInt<bits_num> &LongInt<bits_num>::operator/=(UINT other) {
     FOR_IND(i) {
         buf = (buf << BITS_BASE) + value[i];
         value[i] = buf / other;
-        buf = buf % other;
+        buf %= other;
     }
     // not the best solution but it's easy to write and it works!
     return *this;
@@ -288,30 +273,22 @@ LongInt<bits_num> &LongInt<bits_num>::operator/=(UINT other) {
 
 template<UINT bits_num>
 LongInt<bits_num> LongInt<bits_num>::operator*(const LongInt<bits_num> &other) const {
-    LongInt<bits_num> res;
-    FOR_IND(i) {
-        res += (other * value[i]) << (bits_num - (i + 1) * BITS_BASE);
-    }
+    LongInt res;
+    FOR_IND(i)res += (other * value[i]) << (bits_num - (i + 1) * BITS_BASE);
     return res;
 }
 
 template<UINT bits_num>
 LongInt<bits_num> LongInt<bits_num>::operator*(UINT other) const {
-    LongInt res;
-    uint64_t buf = 0;
-    FOR_IND_REVERSE(i) {
-        buf += value[i] * (uint64_t) other;
-        res[i] = buf;
-        buf >>= BITS_BASE;
-    }
+    LongInt res(*this);
+    res *= other;
     return res;
 }
 
 
 template<UINT bits_num>
 LongInt<bits_num> &LongInt<bits_num>::operator*=(const LongInt<bits_num> &other) {
-    LongInt<bits_num> res = *this * other;
-    FOR_IND(i)value[i] = res[i];
+    *this = *this * other;
     return *this;
 }
 
@@ -335,25 +312,18 @@ LongInt<bits_num> LongInt<bits_num>::operator%(const LongInt<bits_num> &other) c
     LongInt remainder;
     // algorithm from wiki
     for (UINT i = get_bits_count() - 1; i < get_bits_count(); i--) {
-        remainder <<= 1;
-        remainder |= get_bit(get_bits_count() - i - 1);
+        remainder = (remainder << 1) | get_bit(get_bits_count() - i - 1);
 //        res.set_bit(i, remainder >= other);
-        if (remainder >= other) {
+        if (remainder >= other)
             remainder -= other;
-        }
     }
     return remainder;
-//    LongInt a(*this);
-//    LongInt d = a / other;
-//    return *this - other * d;
 }
 
 template<UINT bits_num>
 UINT LongInt<bits_num>::operator%(UINT other) const {
     uint64_t buf = 0;
-    FOR_IND(i) {
-        buf = ((buf << BITS_BASE) + value[i]) % other;
-    }
+    FOR_IND(i)buf = ((buf << BITS_BASE) + value[i]) % other;
     return (UINT) buf;
 }
 
@@ -497,7 +467,7 @@ LongInt<bits_num> LongInt<bits_num>::operator|(const LongInt<bits_num> &other) c
 template<UINT bits_num>
 LongInt<bits_num> LongInt<bits_num>::operator|(UINT other) const {
     LongInt<bits_num> res(*this);
-    res[len - 1] |= other;
+    res[LAST] |= other;
     return res;
 }
 
@@ -524,7 +494,7 @@ LongInt<bits_num> LongInt<bits_num>::operator&(const LongInt<bits_num> &other) c
 template<UINT bits_num>
 LongInt<bits_num> LongInt<bits_num>::operator&(UINT other) const {
     LongInt<bits_num> res;
-    res[len - 1] = value[len - 1] & other;
+    res[len - 1] = value[LAST] & other;
     return res;
 }
 
@@ -552,7 +522,7 @@ LongInt<bits_num> LongInt<bits_num>::operator^(const LongInt<bits_num> &other) c
 template<UINT bits_num>
 LongInt<bits_num> LongInt<bits_num>::operator^(UINT other) const {
     LongInt<bits_num> res(*this);
-    res[len - 1] ^= other;
+    res[LAST] ^= other;
     return res;
 }
 
@@ -657,9 +627,8 @@ LongInt<bits_num> &LongInt<bits_num>::operator=(UINT other) {
 template<UINT bits_num>
 LongInt<bits_num> &LongInt<bits_num>::operator=(int other) {
     FOR_IND(i)value[i] = 0;
-    for (UINT ps = sizeof(other) / BITS_BASE; ps != 0; ps--) {
+    for (UINT ps = sizeof(other) / BITS_BASE; ps != 0; ps--)
         value[ps] = ((unsigned) other >> (BITS_BASE * ps)) & ((UINT) -1);
-    }
     value[LAST] = (unsigned) other & ((UINT) -1);
     return *this;
 }
@@ -672,4 +641,9 @@ UINT &LongInt<bits_num>::operator[](UINT index) {
 template<UINT bits_num>
 UINT LongInt<bits_num>::operator[](UINT index) const {
     return this->value[index];
+}
+
+template<UINT bits_num>
+LongInt<bits_num> LongInt<bits_num>::operator-() const {
+    return ~(*this) + 1;
 }
