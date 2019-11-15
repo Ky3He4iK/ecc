@@ -16,15 +16,14 @@
 typedef uint32_t UINT; //32bit because div and mult easier to write that way
 
 
-#define BITS_BASE (UINT)(sizeof(UINT) * 8)
+#define BITS_BASE (sizeof(UINT) * (UINT)8)
 #define ARR_SIZE (UINT)(bits_num / BITS_BASE + ((bits_num % BITS_BASE == 0) ? 0 : 1))
-#define FOR_IND(i) for (UINT (i) = 0; (i) < ARR_SIZE; (i)++)
-#define FOR_IND_REVERSE(i) for (UINT (i) = ARR_SIZE - 1; (i) != ((UINT) -1); (i)--)
-#define LAST (UINT)(ARR_SIZE - 1)
+#define LAST (len - (UINT)1)
+#define FOR_IND(i) for (UINT (i) = 0; (i) < len; (i)++)
+#define FOR_IND_REVERSE(i) for (UINT (i) = LAST; (i) != ((UINT) -1); (i)--)
+#define UINT_MAX ((UINT)-1)
 
 //template<UINT bits_num>  class LongInt;
-
-
 
 /**
  * Unsigned number with fixed @bits_num-bit length
@@ -36,10 +35,11 @@ class LongInt {
 private:
     std::array<UINT, ARR_SIZE> value{0};
     // array that represents this number. Big-endian (?)
+    UINT len = ARR_SIZE;
+
+    static char itoc(int i);
 
     static int ctoi(char c);
-
-    char itoc(int i) const;
 
     static bool mult_cmp(const LongInt<bits_num> &a, const LongInt<bits_num> &b, const LongInt<bits_num> &third);
 
@@ -74,6 +74,8 @@ public:
     void set_bit(UINT pos, bool val = true);
 
     UINT get_bits_count() const;
+
+    UINT get_len() const;
 
     LongInt<bits_num> operator+(const LongInt<bits_num> &other) const;
 
