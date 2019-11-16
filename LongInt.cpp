@@ -333,7 +333,8 @@ LongInt<bits_num> &LongInt<bits_num>::operator%=(UINT other) {
 
 template<UINT bits_num>
 bool LongInt<bits_num>::operator==(const LongInt<bits_num> &other) const {
-    FOR_IND(i)if (value[i] != other[i])
+    FOR_IND(i)
+        if (value[i] != other[i])
             return false;
     return true;
 }
@@ -349,7 +350,8 @@ bool LongInt<bits_num>::operator==(UINT other) const {
 
 template<UINT bits_num>
 bool LongInt<bits_num>::operator!=(const LongInt<bits_num> &other) const {
-    FOR_IND(i)if (value[i] != other[i])
+    FOR_IND(i)
+        if (value[i] != other[i])
             return true;
     return false;
 }
@@ -365,7 +367,8 @@ bool LongInt<bits_num>::operator!=(UINT other) const {
 
 template<UINT bits_num>
 bool LongInt<bits_num>::operator>(const LongInt<bits_num> &other) const {
-    FOR_IND(i)if (value[i] > other[i])
+    FOR_IND(i)
+        if (value[i] > other[i])
             return true;
         else if (value[i] < other[i])
             return false;
@@ -383,7 +386,8 @@ bool LongInt<bits_num>::operator>(UINT other) const {
 
 template<UINT bits_num>
 bool LongInt<bits_num>::operator>=(const LongInt<bits_num> &other) const {
-    FOR_IND(i)if (value[i] > other[i])
+    FOR_IND(i)
+        if (value[i] > other[i])
             return true;
         else if (value[i] < other[i])
             return false;
@@ -401,7 +405,8 @@ bool LongInt<bits_num>::operator>=(UINT other) const {
 
 template<UINT bits_num>
 bool LongInt<bits_num>::operator<(const LongInt<bits_num> &other) const {
-    FOR_IND(i)if (value[i] < other[i])
+    FOR_IND(i)
+        if (value[i] < other[i])
             return true;
         else if (value[i] > other[i])
             return false;
@@ -419,7 +424,8 @@ bool LongInt<bits_num>::operator<(UINT other) const {
 
 template<UINT bits_num>
 bool LongInt<bits_num>::operator<=(const LongInt<bits_num> &other) const {
-    FOR_IND(i)if (value[i] < other[i])
+    FOR_IND(i)
+        if (value[i] < other[i])
             return true;
         else if (value[i] > other[i])
             return false;
