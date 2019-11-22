@@ -73,6 +73,8 @@ public:
 
     bool get_overflowed() const;
 
+    UINT get_actual_bits() const;
+
     LongInt operator+(const LongInt &other) const;
 
     LongInt operator+(UINT other) const;
@@ -101,7 +103,7 @@ public:
     }
 
 
-    LongInt operator/(const LongInt &other);
+    LongInt operator/(const LongInt &other) const;
 
     LongInt operator/(UINT other) const;
 

@@ -5,6 +5,13 @@
 #include "LongInt.h"
 #include <iostream>
 
+#define CHECK_SIZES(b) { \
+    if (bits_num != (b).bits_num) \
+        throw std::invalid_argument( \
+            std::string("Dimensions didn't match! (") + LongInt(BITS_BASE, bits_num).to_string() + " != " + \
+                    LongInt(BITS_BASE, (b).bits_num).to_string()); \
+}
+
 LongInt::LongInt(UINT _bits_num, const UINT *init) : bits_num(_bits_num) {
 //        value = new UINT[ARR_SIZE];
     value.resize(ARR_SIZE);
@@ -47,13 +54,12 @@ void LongInt::set_overflowed(bool val) {
 
 LongInt LongInt::changeLen(UINT new_bits_num) const {
     LongInt res(new_bits_num);
-    UINT len = res.get_len();
-    UINT o_len = get_len();
-    for (UINT i = 0; i < std::min(len, o_len); i++)
-        if (len < o_len)
-            res[i] = value[i + o_len - len];
+    UINT n_len = res.get_len();
+    for (UINT i = 0; i < std::min(n_len, len); i++)
+        if (n_len < len)
+            res[i] = value[i + len - n_len];
         else
-            res[i + len - o_len] = value[i];
+            res[i + n_len - len] = value[i];
     return res;
 }
 
@@ -99,7 +105,7 @@ UINT LongInt::last_item() const {
 
 
 bool LongInt::get_bit(UINT pos) const {
-    return (value[pos / BITS_BASE] >> ((BITS_BASE - (pos % BITS_BASE) - 1) % BITS_BASE)) & 1;
+    return (value[pos / BITS_BASE] >> ((BITS_BASE - (pos % BITS_BASE) - 1) % BITS_BASE)) & (UINT) 1;
 }
 
 
@@ -115,7 +121,7 @@ bool LongInt::get_overflowed() const {
 
 void LongInt::set_bit(UINT pos, bool val) {
     UINT mask = UINT_MAX - ((UINT) 1 << (pos % BITS_BASE));
-    value[pos / BITS_BASE] = (value[pos / BITS_BASE] & mask) | (val << (pos % BITS_BASE));
+    value[pos / BITS_BASE] = (value[pos / BITS_BASE] & mask) | (UINT) (val << (pos % BITS_BASE));
 }
 
 
@@ -123,6 +129,13 @@ UINT LongInt::get_bits_count() const {
     return len * BITS_BASE;
 }
 
+UINT LongInt::get_actual_bits() const {
+    for (UINT i = 0; i < get_bits_count(); i++)
+        if (get_bit(i))
+            return get_bits_count() - i;
+
+    return 0;
+}
 
 LongInt LongInt::operator+(const LongInt &other) const {
     LongInt res(*this);
@@ -139,6 +152,7 @@ LongInt LongInt::operator+(UINT other) const {
 
 
 LongInt &LongInt::operator+=(const LongInt &other) {
+    CHECK_SIZES(other)
     uint64_t buf = 0;
     FOR_IND_REVERSE(i) {
         buf = buf + other[i] + (uint64_t) value[i];
@@ -181,6 +195,7 @@ LongInt LongInt::operator-(UINT other) const {
 
 
 LongInt &LongInt::operator-=(const LongInt &other) {
+    CHECK_SIZES(other)
     uint64_t buf = 0;
     FOR_IND_REVERSE(i) {
         buf = (uint64_t) value[i] - other[i] - buf;
@@ -208,9 +223,11 @@ LongInt &LongInt::operator-=(UINT other) {
 }
 
 
-LongInt LongInt::operator/(const LongInt &other) {
+LongInt LongInt::operator/(const LongInt &other) const {
+    CHECK_SIZES(other)
     if (other == 0)
         throw std::invalid_argument("Cannot divide by zero");
+
     LongInt ub(bits_num);
     --ub;
     LongInt lb(bits_num);
@@ -223,6 +240,7 @@ LongInt LongInt::operator/(const LongInt &other) {
         else
             lb = mid;
     }
+
     lb.set_overflowed(get_overflowed() || other.get_overflowed());
     return lb;
 }
@@ -268,6 +286,7 @@ LongInt LongInt::operator*(UINT other) const {
 
 
 LongInt &LongInt::operator*=(const LongInt &other) {
+    CHECK_SIZES(other)
     *this = *this * other;
     return *this;
 }
@@ -287,6 +306,7 @@ LongInt &LongInt::operator*=(UINT other) {
 
 
 LongInt LongInt::operator%(const LongInt &other) const {
+    CHECK_SIZES(other)
     if (other == 0)
         throw std::invalid_argument("Cannot divide by zero");
 
@@ -311,8 +331,6 @@ UINT LongInt::operator%(UINT other) const {
 
 
 LongInt &LongInt::operator%=(const LongInt &other) {
-    if (other == 0)
-        throw std::invalid_argument("Cannot divide by zero");
     LongInt res = *this % other;
     FOR_IND(i)value[i] = res[i];
     return *this;
@@ -331,6 +349,7 @@ LongInt &LongInt::operator%=(UINT other) {
 
 
 bool LongInt::operator==(const LongInt &other) const {
+    CHECK_SIZES(other)
     FOR_IND(i)
         if (value[i] != other[i])
             return false;
@@ -347,6 +366,7 @@ bool LongInt::operator==(UINT other) const {
 
 
 bool LongInt::operator!=(const LongInt &other) const {
+    CHECK_SIZES(other)
     FOR_IND(i)
         if (value[i] != other[i])
             return true;
@@ -381,6 +401,7 @@ bool LongInt::operator>(UINT other) const {
 
 
 bool LongInt::operator>=(const LongInt &other) const {
+    CHECK_SIZES(other)
     FOR_IND(i)
         if (value[i] > other[i])
             return true;
@@ -417,6 +438,7 @@ bool LongInt::operator<(UINT other) const {
 
 
 bool LongInt::operator<=(const LongInt &other) const {
+    CHECK_SIZES(other)
     FOR_IND(i)
         if (value[i] < other[i])
             return true;
@@ -449,6 +471,7 @@ LongInt LongInt::operator|(UINT other) const {
 
 
 LongInt &LongInt::operator|=(const LongInt &other) {
+    CHECK_SIZES(other)
     FOR_IND(i) value[i] |= other[i];
     return *this;
 }
@@ -475,6 +498,7 @@ LongInt LongInt::operator&(UINT other) const {
 
 
 LongInt &LongInt::operator&=(const LongInt &other) {
+    CHECK_SIZES(other)
     FOR_IND(i)value[i] &= other[i];
     return *this;
 }
@@ -502,6 +526,7 @@ LongInt LongInt::operator^(UINT other) const {
 
 
 LongInt &LongInt::operator^=(const LongInt &other) {
+    CHECK_SIZES(other)
     FOR_IND(i)value[i] ^= other[i];
     return *this;
 }
@@ -594,10 +619,7 @@ const LongInt LongInt::operator--(int) {
 
 
 LongInt &LongInt::operator=(const LongInt &other) {
-    if (bits_num != other.bits_num)
-        throw std::invalid_argument(
-                std::string("Dimensions didn't match! (") + LongInt(BITS_BASE, bits_num).to_string() + " != " +
-                LongInt(BITS_BASE, other.bits_num).to_string());
+    CHECK_SIZES(other)
     FOR_IND(i)value[i] = other[i];
     return *this;
 }

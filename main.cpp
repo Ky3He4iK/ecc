@@ -148,7 +148,7 @@ bool test() {
     ASSERT(l1 / 45, LongInt(256, "5718521217218725020449717973634983066"), "/")
     ASSERT(l1 / l2, LongInt(256, "0"), "/")
     ASSERT(l2 / l1, LongInt(256, "1"), "/")
-    ASSERT(l1 * 4 / l2, LongInt(256, "3"), "*/")
+    ASSERT(l1 * 4 / l2, LongInt(256, "3"), "* /")
     ASSERT(l1 / LongInt(256, "26959946667150639794667015087019630673637144422540572481103610249215"),
            LongInt(256, "0"), "/")
     ASSERT(LongInt(256, "26959946667150639794667015087019630673637144422540572481103610249215") / LongInt(256, "1"),
@@ -182,7 +182,7 @@ bool test() {
     cout << l1.to_string() << ' ' << r1.to_string() << ' ' << r2.to_string() << '\n';
     cout << l1.to_string(16, true) << ' ' << r1.to_string(16, true) << ' ' << r2.to_string(16, true) << '\n';
     ASSERT((l1 * r2.changeLen(256)) / r1.changeLen(256),
-           LongInt(256, "132986019424650742707037798676240676234"), "*/")
+           LongInt(256, "132986019424650742707037798676240676234"), "* /")
     return r;
 }
 
