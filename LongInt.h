@@ -23,17 +23,17 @@ typedef uint32_t UINT; //32bit because div and mult easier to write that way
 #define FOR_IND_REVERSE(i) for (UINT (i) = LAST; (i) != ((UINT) -1); (i)--)
 #define UINT_MAX ((UINT)-1)
 
-//template<UINT bits_num>  class LongInt;
+//  class LongInt;
 
 /**
  * Unsigned number with fixed @bits_num-bit length
  *
  */
 
-template<UINT bits_num> //bits in the number
 class LongInt {
 private:
-    std::array<UINT, ARR_SIZE> value{0};
+    const UINT bits_num;
+    std::vector<UINT> value;
     // array that represents this number. Big-endian (?)
     UINT len = ARR_SIZE;
     bool overflowed = false;
@@ -47,22 +47,17 @@ private:
 public:
 //    const UINT ARR_SIZE = ARR_SIZE;
 
-    explicit LongInt(const UINT init[ARR_SIZE]) {
-//        value = new UINT[ARR_SIZE];
-        FOR_IND(i)value[i] = init[i];
-    }
+    LongInt(UINT bits_num, const UINT *init);
 
-    LongInt();
+    explicit LongInt(UINT bits_num);
 
-    explicit LongInt(UINT init);
+    explicit LongInt(UINT bits_num, UINT init);
 
-    LongInt(const LongInt<bits_num> &other);
+    LongInt(const LongInt &other);
 
-    explicit LongInt(const std::string &str, int radix = 10);
+    explicit LongInt(UINT bits_num, const std::string &str, int radix = 10);
 
-//    template<UINT _, UINT old_bits_num>
-    template<UINT old_bits_num>
-    static LongInt<bits_num> changeLen(const LongInt<old_bits_num> &other);
+    LongInt changeLen(UINT new_bits_num) const;
 
     std::string to_string(UINT radix = 10, bool group = false) const;
 
@@ -78,234 +73,256 @@ public:
 
     bool get_overflowed() const;
 
-    LongInt<bits_num> operator+(const LongInt<bits_num> &other) const;
+    LongInt operator+(const LongInt &other) const;
 
-    LongInt<bits_num> operator+(UINT other) const;
+    LongInt operator+(UINT other) const;
 
-    LongInt<bits_num> &operator+=(const LongInt<bits_num> &other);
+    LongInt &operator+=(const LongInt &other);
 
-    LongInt<bits_num> &operator+=(UINT other);
-
-    template<UINT _>
-    friend LongInt<bits_num> operator+(UINT first, const LongInt<bits_num> &other);
+    LongInt &operator+=(UINT other);
 
 
-    LongInt<bits_num> operator-(const LongInt<bits_num> &other) const;
-
-    LongInt<bits_num> operator-(UINT other) const;
-
-    LongInt<bits_num> &operator-=(const LongInt<bits_num> &other);
-
-    LongInt<bits_num> &operator-=(UINT other);
-
-    template<UINT _>
-    friend LongInt<bits_num> operator-(UINT first, const LongInt<bits_num> &other);
+    friend LongInt operator+(UINT first, const LongInt &other) {
+        return other + first;
+    }
 
 
-    LongInt<bits_num> operator/(const LongInt<bits_num> &other);
+    LongInt operator-(const LongInt &other) const;
 
-    LongInt<bits_num> operator/(UINT other) const;
+    LongInt operator-(UINT other) const;
 
-    LongInt<bits_num> &operator/=(const LongInt<bits_num> &other);
+    LongInt &operator-=(const LongInt &other);
 
-    LongInt<bits_num> &operator/=(UINT other);
-
-//    friend LongInt<bits_num> operator/(UINT first, const LongInt<bits_num> &other);
+    LongInt &operator-=(UINT other);
 
 
-    LongInt<bits_num> operator*(const LongInt<bits_num> &other) const;
-
-    LongInt<bits_num> operator*(UINT other) const;
-
-    LongInt<bits_num> &operator*=(const LongInt<bits_num> &other);
-
-    LongInt<bits_num> &operator*=(UINT other);
-
-    template<UINT _>
-    friend LongInt<bits_num> operator*(UINT first, const LongInt<bits_num> &other);
+    friend LongInt operator-(UINT first, const LongInt &other) {
+        return other - first;
+    }
 
 
-    LongInt<bits_num> operator%(const LongInt<bits_num> &other) const;
+    LongInt operator/(const LongInt &other);
+
+    LongInt operator/(UINT other) const;
+
+    LongInt &operator/=(const LongInt &other);
+
+    LongInt &operator/=(UINT other);
+
+//    friend LongInt operator/(UINT first, const LongInt &other);
+
+
+    LongInt operator*(const LongInt &other) const;
+
+    LongInt operator*(UINT other) const;
+
+    LongInt &operator*=(const LongInt &other);
+
+    LongInt &operator*=(UINT other);
+
+
+    friend LongInt operator*(UINT first, const LongInt &other) {
+        return other * first;
+    }
+
+
+    LongInt operator%(const LongInt &other) const;
 
     UINT operator%(UINT other) const;
 
-    LongInt<bits_num> &operator%=(const LongInt<bits_num> &other);
+    LongInt &operator%=(const LongInt &other);
 
-    LongInt<bits_num> &operator%=(UINT other);
+    LongInt &operator%=(UINT other);
 
 
-    bool operator==(const LongInt<bits_num> &other) const;
+    bool operator==(const LongInt &other) const;
 
     bool operator==(UINT other) const;
 
-    template<UINT _>
-    friend bool operator==(UINT first, const LongInt<bits_num> &other);
+
+    friend bool operator==(UINT first, const LongInt &other) {
+        return other == first;
+    }
 
 
-    bool operator!=(const LongInt<bits_num> &other) const;
+    bool operator!=(const LongInt &other) const;
 
     bool operator!=(UINT other) const;
 
-    template<UINT _>
-    friend bool operator!=(UINT first, const LongInt<bits_num> &other);
 
-    bool operator>(const LongInt<bits_num> &other) const;
+    friend bool operator!=(UINT first, const LongInt &other) {
+        return other != first;
+    }
+
+    bool operator>(const LongInt &other) const;
 
     bool operator>(UINT other) const;
 
-    template<UINT _>
-    friend bool operator>(UINT first, const LongInt<bits_num> &other);
 
-    bool operator>=(const LongInt<bits_num> &other) const;
+    friend bool operator>(UINT first, const LongInt &other) {
+        return other < first;
+    }
+
+    bool operator>=(const LongInt &other) const;
 
     bool operator>=(UINT other) const;
 
-    template<UINT _>
-    friend bool operator>=(UINT first, const LongInt<bits_num> &other);
+
+    friend bool operator>=(UINT first, const LongInt &other) {
+        return other <= first;
+    }
 
 
-    bool operator<(const LongInt<bits_num> &other) const;
+    bool operator<(const LongInt &other) const;
 
     bool operator<(UINT other) const;
 
-    template<UINT _>
-    friend bool operator<(UINT first, const LongInt<bits_num> &other);
 
-    bool operator<=(const LongInt<bits_num> &other) const;
+    friend bool operator<(UINT first, const LongInt &other) {
+        return other > first;
+    }
+
+    bool operator<=(const LongInt &other) const;
 
     bool operator<=(UINT other) const;
 
-    template<UINT _>
-    friend LongInt<bits_num> operator<=(UINT first, const LongInt<bits_num> &other);
+
+    friend bool operator<=(UINT first, const LongInt &other) {
+        return other >= first;
+    }
 
 
-    LongInt<bits_num> operator|(const LongInt<bits_num> &other) const;
+    LongInt operator|(const LongInt &other) const;
 
-    LongInt<bits_num> operator|(UINT other) const;
+    LongInt operator|(UINT other) const;
 
-    LongInt<bits_num> &operator|=(const LongInt<bits_num> &other);
+    LongInt &operator|=(const LongInt &other);
 
-    LongInt<bits_num> &operator|=(UINT other);
-
-    template<UINT _>
-    friend LongInt<bits_num> operator|(UINT first, const LongInt<bits_num> &other);
+    LongInt &operator|=(UINT other);
 
 
-    LongInt<bits_num> operator&(const LongInt<bits_num> &other) const;
-
-    LongInt<bits_num> operator&(UINT other) const;
-
-    LongInt<bits_num> &operator&=(const LongInt<bits_num> &other);
-
-    LongInt<bits_num> &operator&=(UINT other);
-
-    template<UINT _>
-    friend LongInt<bits_num> operator&(UINT first, const LongInt<bits_num> &other);
+    friend LongInt operator|(UINT first, const LongInt &other) {
+        return other | first;
+    }
 
 
-    LongInt<bits_num> operator^(const LongInt<bits_num> &other) const;
+    LongInt operator&(const LongInt &other) const;
 
-    LongInt<bits_num> operator^(UINT other) const;
+    LongInt operator&(UINT other) const;
 
-    LongInt<bits_num> &operator^=(const LongInt<bits_num> &other);
+    LongInt &operator&=(const LongInt &other);
 
-    LongInt<bits_num> &operator^=(UINT other);
-
-    template<UINT _>
-    friend LongInt<bits_num> operator^(UINT first, const LongInt<bits_num> &other);
+    LongInt &operator&=(UINT other);
 
 
-    LongInt<bits_num> operator<<(UINT other) const;
+    friend LongInt operator&(UINT first, const LongInt &other) {
+        return other & first;
+    }
 
-    LongInt<bits_num> operator>>(UINT other) const;
 
-    LongInt<bits_num> operator<<=(UINT other);
+    LongInt operator^(const LongInt &other) const;
 
-    LongInt<bits_num> operator>>=(UINT other);
+    LongInt operator^(UINT other) const;
 
-    LongInt<bits_num> operator~() const;
+    LongInt &operator^=(const LongInt &other);
 
-    LongInt<bits_num> &operator++();
+    LongInt &operator^=(UINT other);
 
-    const LongInt<bits_num> operator++(int);
 
-    LongInt<bits_num> &operator--();
+    friend LongInt operator^(UINT first, const LongInt &other) {
+        return other ^ first;
+    }
 
-    const LongInt<bits_num> operator--(int);
 
-    LongInt<bits_num> &operator=(const LongInt<bits_num> &other) = default;
+    LongInt operator<<(UINT other) const;
 
-    LongInt<bits_num> &operator=(UINT other);
+    LongInt operator>>(UINT other) const;
 
-    LongInt<bits_num> &operator=(int other);
+    LongInt operator<<=(UINT other);
 
-    LongInt<bits_num> operator-() const;
+    LongInt operator>>=(UINT other);
+
+    LongInt operator~() const;
+
+    LongInt &operator++();
+
+    const LongInt operator++(int);
+
+    LongInt &operator--();
+
+    const LongInt operator--(int);
+
+    LongInt &operator=(const LongInt &other);
+
+    LongInt &operator=(UINT other);
+
+    LongInt &operator=(int other);
+
+    LongInt operator-() const;
 
     UINT &operator[](UINT index);
 
     UINT operator[](UINT index) const;
 };
 
-template<UINT bits_num>
-LongInt<bits_num> operator+(UINT first, const LongInt<bits_num> &other) {
+/*
+LongInt operator+(UINT first, const LongInt &other) {
     return other + first;
 }
 
-template<UINT bits_num>
-LongInt<bits_num> operator-(UINT first, const LongInt<bits_num> &other) {
-    return LongInt<bits_num>(first) - other;
+
+LongInt operator-(UINT first, const LongInt &other) {
+    return LongInt(first) - other;
 }
 
-template<UINT bits_num>
-LongInt<bits_num> operator*(UINT first, const LongInt<bits_num> &other) {
+
+LongInt operator*(UINT first, const LongInt &other) {
     return other * first;
 }
 
 
-template<UINT bits_num>
-bool operator==(UINT first, const LongInt<bits_num> &other) {
+bool operator==(UINT first, const LongInt &other) {
     return other == first;
 }
 
-template<UINT bits_num>
-bool operator!=(UINT first, const LongInt<bits_num> &other) {
+
+bool operator!=(UINT first, const LongInt &other) {
     return other != first;
 }
 
 
-template<UINT bits_num>
-bool operator>(UINT first, const LongInt<bits_num> &other) {
+bool operator>(UINT first, const LongInt &other) {
     return other <= first;
 }
 
-template<UINT bits_num>
-bool operator>=(UINT first, const LongInt<bits_num> &other) {
+
+bool operator>=(UINT first, const LongInt &other) {
     return other <= first;
 }
 
-template<UINT bits_num>
-bool operator<(UINT first, const LongInt<bits_num> &other) {
+
+bool operator<(UINT first, const LongInt &other) {
     return other >= first;
 }
 
-template<UINT bits_num>
-bool operator<=(UINT first, const LongInt<bits_num> &other) {
+
+bool operator<=(UINT first, const LongInt &other) {
     return other >= first;
 }
 
-template<UINT bits_num>
-LongInt<bits_num> operator|(UINT first, const LongInt<bits_num> &other) {
+
+LongInt operator|(UINT first, const LongInt &other) {
     return other | first;
 }
 
-template<UINT bits_num>
-LongInt<bits_num> operator&(UINT first, const LongInt<bits_num> &other) {
+
+LongInt operator&(UINT first, const LongInt &other) {
     return other & first;
 }
 
-template<UINT bits_num>
-LongInt<bits_num> operator^(UINT first, const LongInt<bits_num> &other) {
+
+LongInt operator^(UINT first, const LongInt &other) {
     return other ^ first;
 }
-
+*/
 #endif //ELIPTIC_CURVES_CYPHER_LONGINT_H
