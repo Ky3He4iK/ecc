@@ -228,21 +228,18 @@ LongInt LongInt::operator/(const LongInt &other) const {
     if (other == 0)
         throw std::invalid_argument("Cannot divide by zero");
 
-    LongInt ub(bits_num);
-    --ub;
-    LongInt lb(bits_num);
-    // algorithm from wiki doesn't work correctly. Using binary search instead
-    while (ub - lb > 1 && ub > lb) {
-        LongInt mid = ((ub - lb) >> 1) + lb;
-        LongInt mult = other * mid;
-        if (mult.get_overflowed() || mult > *this)
-            ub = mid;
-        else
-            lb = mid;
+    LongInt remainder(bits_num);
+    LongInt res(bits_num);
+    // algorithm from wiki
+    for (UINT i = get_bits_count() - 1; i < get_bits_count(); i--) {
+        remainder = (remainder << 1) | get_bit(get_bits_count() - i - 1);
+        res = (res << 1) | (remainder >= other);
+//        res.set_bit(i, remainder >= other);
+        if (remainder >= other)
+            remainder -= other;
     }
-
-    lb.set_overflowed(get_overflowed() || other.get_overflowed());
-    return lb;
+    res.set_overflowed(get_overflowed() || other.get_overflowed());
+    return res;
 }
 
 
