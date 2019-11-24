@@ -57,23 +57,23 @@ public:
 
     explicit LongInt(UINT bits_num, const std::string &str, int radix = 10);
 
-    LongInt changeLen(UINT new_bits_num) const;
+    [[nodiscard]] LongInt changeLen(UINT new_bits_num) const;
 
-    std::string to_string(UINT radix = 10, bool group = false) const;
+    [[nodiscard]] std::string to_string(UINT radix = 10, bool group = false) const;
 
-    UINT last_item() const;
+    [[nodiscard]] UINT last_item() const;
 
-    bool get_bit(UINT pos) const;
+    [[nodiscard]] bool get_bit(UINT pos) const;
 
     void set_bit(UINT pos, bool val = true);
 
-    UINT get_bits_count() const;
+    [[nodiscard]] UINT get_bits_count() const;
 
-    UINT get_len() const;
+    [[nodiscard]] UINT get_len() const;
 
-    bool get_overflowed() const;
+    [[nodiscard]] bool get_overflowed() const;
 
-    UINT get_actual_bits() const;
+    [[nodiscard]] UINT get_actual_bits() const;
 
     LongInt operator+(const LongInt &other) const;
 

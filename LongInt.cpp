@@ -306,6 +306,8 @@ LongInt LongInt::operator%(const LongInt &other) const {
     CHECK_SIZES(other)
     if (other == 0)
         throw std::invalid_argument("Cannot divide by zero");
+    if (other > *this)
+        return LongInt(bits_num);
 
     LongInt remainder(bits_num);
     // algorithm from wiki
