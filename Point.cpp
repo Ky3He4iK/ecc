@@ -34,35 +34,28 @@ Point::Point(const EllipticCurve *_curve, const LongInt &_x, const LongInt &_y) 
                                                                                   y(_y % *_curve->get_p()),
                                                                                   p(_curve->get_p()) {}
 
-Point Point::operator+(const Point &other) const {
-    Point res(*this);
-    res += other;
-    return res;
-}
 
 // Returns the result of this + other according to the group law.
-Point &Point::operator+=(const Point &other) {
+Point Point::operator+(const Point &other) const {
     ASSERT_ON_CURVE(*this)
     ASSERT_ON_CURVE(other)
-    if (is_inf) {
-        x = other.x;
-        y = other.y;
-        is_inf = other.is_inf;
-    } else if (!other.is_inf) {
-        LongInt m(x);
-        if (x == other.x) {
-            if (y == other.y)
-                m = ((3 * x * x + *curve->get_a()) * inverse_mod(2 * y, *p)) % *p;
-            else
-                is_inf = true;
-        } else
-            m = ((y - other.y) * inverse_mod(x - other.x, *p)) % *p;
-        LongInt xr = m * m - x - other.x;
-        y = (*curve->get_p() * 2 - y - m * (xr - x) % *curve->get_p()) % *curve->get_p();
-        x = xr;
-    }
-    ASSERT_ON_CURVE(*this)
-    return *this;
+    if (is_inf)
+        return other;
+    if (other.is_inf)
+        return *this;
+
+    LongInt m(x);
+    if (x == other.x) {
+        if (y != other.y)
+            return inf_point(curve);
+        m = ((3 * x * x + *curve->get_a()) * inverse_mod(2 * y, *p)) % *p;
+    } else
+        m = ((y - other.y) * inverse_mod(x - other.x, *p)) % *p;
+    LongInt xr = m * m - x - other.x;
+    Point res(curve, xr, (*curve->get_p() * 2 - y - m * (xr - x) % *curve->get_p()) % *curve->get_p());
+
+    ASSERT_ON_CURVE(res)
+    return res;
 }
 
 
@@ -78,8 +71,8 @@ Point Point::operator*(const LongInt &k) const {
         Point pow = Point(*this);
         for (UINT i = 0; i < k.get_bits_count(); i++) {
             if (k.get_bit(k.get_bits_count() - i - 1))
-                res += pow;
-            pow += pow;
+                res = res + pow;
+            pow = pow + pow;
         }
     }
     ASSERT_ON_CURVE(res)
@@ -127,4 +120,16 @@ Point Point::operator-() const {
 // Returns true if the given point lies on the elliptic curve
 bool Point::on_curve() const {
     return is_inf | ((y * y - x * x * x - *curve->get_a() * x - *curve->get_b()) % *curve->get_p() == UINT_0);
+}
+
+std::string Point::to_string() const {
+    if (is_inf)
+        return "Infinity";
+    return std::string("(") + x.to_string() + "; " + y.to_string() + ")";
+}
+
+bool Point::operator==(const Point &other) const {
+    if (is_inf || other.is_inf)
+        return is_inf == other.is_inf;
+    return x == other.x && y == other.y;
 }

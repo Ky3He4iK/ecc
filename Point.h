@@ -36,12 +36,15 @@ public:
 
     static Point inf_point(const EllipticCurve *curve);
 
+    std::string to_string() const;
+
     Point operator+(const Point &other) const;
 
-    Point &operator+=(const Point &other);
-
     Point operator*(const LongInt &k) const;
+
     Point operator-() const;
+
+    bool operator==(const Point &other) const;
 };
 
 
