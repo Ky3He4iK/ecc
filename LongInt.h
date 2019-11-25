@@ -27,7 +27,7 @@ typedef uint32_t UINT; //32bit because div and mult easier to write that way
 #define ASSERT_(condition, msg) { \
     if (!(condition)) \
         std::cerr << "Houston ... We've Got a Problem: assertion failed at " << __FILE__ << ":" << __LINE__ \
-                  <<" (" << msg << ")"; \
+                  << " At func " << __FUNCTION__ << ": (" << msg << ")"; \
 }
 
 /**
@@ -57,7 +57,7 @@ public:
 
     explicit LongInt(UINT bits_num, UINT init);
 
-    LongInt(const LongInt &other);
+    LongInt(const LongInt &other) = default;
 
     explicit LongInt(UINT bits_num, const std::string &str, int radix = 10);
 

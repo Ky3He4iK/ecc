@@ -6,28 +6,32 @@
 #define ECC_ELLIPTICCURVE_H
 
 #include "LongInt.h"
+#include "Point.h"
 
-typedef LongInt AS_INT;
-
+class Point;
 
 // y**2 = (x**3 + a*x + b) % p
 class EllipticCurve {
 private:
-    AS_INT p;
-    AS_INT a;
-    AS_INT b;
+    LongInt p;
+    LongInt a;
+    LongInt b;
+    LongInt n;
 
 public:
-    [[nodiscard]] const AS_INT *get_p() const {
+    [[nodiscard]] const LongInt *get_p() const {
         return &p;
     }
 
-    [[nodiscard]] const AS_INT *get_a() const {
+    [[nodiscard]] const LongInt *get_a() const {
         return &a;
     }
 
-    [[nodiscard]] const AS_INT *get_b() const {
+    [[nodiscard]] const LongInt *get_b() const {
         return &b;
+    }
+    [[nodiscard]] const LongInt *get_n() const {
+        return &n;
     }
 };
 

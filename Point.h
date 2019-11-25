@@ -10,25 +10,38 @@
 #include "EllipticCurve.h"
 #include "LongInt.h"
 
+class EllipticCurve;
+
 class Point {
 private:
-    const AS_INT *p;
-    AS_INT x, y;
+    const LongInt *p;
+    LongInt x, y;
+    bool is_inf = false;
     const EllipticCurve *curve;
 
-    static std::array<AS_INT, 3> extended_gcd(const AS_INT &a, const AS_INT &b);
+    static std::array<LongInt, 3> extended_gcd(const LongInt &a, const LongInt &b);
 
-    static AS_INT inverse_of(const AS_INT &n, const AS_INT &p);
+    static LongInt inverse_mod(const LongInt &k, const LongInt &p);
 
 public:
-    Point(const EllipticCurve *_curve, const AS_INT &_x, const AS_INT &_y);
+    Point(const EllipticCurve *_curve, const LongInt &_x, const LongInt &_y);
+
     Point(const Point &other) = default;
 
+    bool get_inf() const {
+        return is_inf;
+    }
+
+    bool on_curve() const;
+
+    static Point inf_point(const EllipticCurve *curve);
+
     Point operator+(const Point &other) const;
+
     Point &operator+=(const Point &other);
 
-    Point operator*(const AS_INT &other) const;
-
+    Point operator*(const LongInt &k) const;
+    Point operator-() const;
 };
 
 

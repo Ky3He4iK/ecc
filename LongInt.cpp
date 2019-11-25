@@ -30,13 +30,6 @@ LongInt::LongInt(UINT _bits_num, UINT init) : bits_num(_bits_num) {
 }
 
 
-LongInt::LongInt(const LongInt &other) : bits_num(other.bits_num) {
-    value.resize(ARR_SIZE);
-    FOR_IND(i)value[i] = other[i];
-    set_overflowed(other.get_overflowed());
-}
-
-
 LongInt::LongInt(UINT _bits_num, const std::string &str, int radix) : bits_num(_bits_num) {
     value.resize(ARR_SIZE);
     for (auto &c: str) {
