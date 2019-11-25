@@ -14,7 +14,7 @@
 #include <array>
 #include <iostream>
 
-typedef uint32_t UINT; //32bit because div and mult easier to write that way
+typedef uint32_t UINT; //32bit because add, sub and mult easier to write that way
 
 
 #define BITS_BASE (sizeof(UINT) * (UINT)8)
@@ -40,9 +40,7 @@ private:
     std::vector<UINT> value;
     // array that represents this number. Big-endian (?)
     UINT len = ARR_SIZE;
-    bool overflowed = false;
-
-    void set_overflowed(bool val = true);
+    bool sign = true;  // true if positive
 
     static char itoc(int i);
 
@@ -75,9 +73,13 @@ public:
 
     [[nodiscard]] UINT get_len() const;
 
-    [[nodiscard]] bool get_overflowed() const;
-
     [[nodiscard]] UINT get_actual_bits() const;
+
+    bool get_sign() const {
+        return sign;
+    }
+
+    LongInt fast_pow_mod(const LongInt &y, const LongInt &z) const;
 
     LongInt operator+(const LongInt &other) const;
 
@@ -103,7 +105,7 @@ public:
 
 
     friend LongInt operator-(UINT first, const LongInt &other) {
-        return other - first;
+        return -(other - first);
     }
 
 

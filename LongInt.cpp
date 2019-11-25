@@ -31,6 +31,7 @@ LongInt::LongInt(UINT _bits_num, UINT init) : bits_num(_bits_num) {
 
 
 LongInt::LongInt(UINT _bits_num, const std::string &str, int radix) : bits_num(_bits_num) {
+    sign = str[0] != '-';
     value.resize(ARR_SIZE);
     for (auto &c: str) {
         int i = ctoi(c);
@@ -38,12 +39,6 @@ LongInt::LongInt(UINT _bits_num, const std::string &str, int radix) : bits_num(_
             *this = *this * radix + i;
     }
 }
-
-
-void LongInt::set_overflowed(bool val) {
-    overflowed = val;
-}
-
 
 LongInt LongInt::changeLen(UINT new_bits_num) const {
     LongInt res(new_bits_num);
@@ -53,6 +48,7 @@ LongInt LongInt::changeLen(UINT new_bits_num) const {
             res[i] = value[i + len - n_len];
         else
             res[i + n_len - len] = value[i];
+    res.sign = sign;
     return res;
 }
 
@@ -85,6 +81,8 @@ std::string LongInt::to_string(UINT radix, bool group) const {
     }
     if (!res.empty() && res.back() == '_')
         res.pop_back();
+    if (!sign && !res.empty())
+        res.push_back('-');
     reverse(res.begin(), res.end());
     if (res.empty())
         res = "0";
@@ -104,11 +102,6 @@ bool LongInt::get_bit(UINT pos) const {
 
 UINT LongInt::get_len() const {
     return len;
-}
-
-
-bool LongInt::get_overflowed() const {
-    return overflowed;
 }
 
 
@@ -146,14 +139,20 @@ LongInt LongInt::operator+(UINT other) const {
 
 LongInt &LongInt::operator+=(const LongInt &other) {
     CHECK_SIZES(other)
+    if (sign) {
+        if (!other.sign)
+            return *this -= -other.sign;
+    } else if (!other.sign) {
+        *this = other - -(*this);
+        return *this;
+    }
+
     uint64_t buf = 0;
     FOR_IND_REVERSE(i) {
         buf = buf + other[i] + (uint64_t) value[i];
         value[i] = buf;
         buf >>= BITS_BASE;
     }
-    if (buf)
-        set_overflowed();
     return *this;
 }
 
@@ -167,8 +166,6 @@ LongInt &LongInt::operator+=(UINT other) {
         value[i] = buf;
         buf >>= BITS_BASE;
     }
-    if (buf)
-        set_overflowed();
     return *this;
 }
 
@@ -188,20 +185,32 @@ LongInt LongInt::operator-(UINT other) const {
 
 
 LongInt &LongInt::operator-=(const LongInt &other) {
+    if (other > *this)
+        return *this = -(other - *this);
+
     CHECK_SIZES(other)
+    if (sign) {
+        if (!other.sign)
+            return *this += -other.sign;
+    } else if (!other.sign) {
+        *this = -(*this + other);
+        return *this;
+    }
+
     uint64_t buf = 0;
     FOR_IND_REVERSE(i) {
         buf = (uint64_t) value[i] - other[i] - buf;
         value[i] = buf;
         buf = (buf >> BITS_BASE) & (UINT) 1;
     }
-    if (buf)
-        set_overflowed();
     return *this;
 }
 
 
 LongInt &LongInt::operator-=(UINT other) {
+    if (other > *this)
+        return *this = -(other - *this);
+
     uint64_t buf = 0;
     FOR_IND_REVERSE(i) {
         buf = (uint64_t) value[i] - buf;
@@ -210,8 +219,6 @@ LongInt &LongInt::operator-=(UINT other) {
         value[i] = buf;
         buf = (buf >> BITS_BASE) & (UINT) 1;
     }
-    if (buf)
-        set_overflowed();
     return *this;
 }
 
@@ -231,7 +238,7 @@ LongInt LongInt::operator/(const LongInt &other) const {
         if (remainder >= other)
             remainder -= other;
     }
-    res.set_overflowed(get_overflowed() || other.get_overflowed());
+    res.sign = sign == other.sign;
     return res;
 }
 
@@ -264,21 +271,20 @@ LongInt &LongInt::operator/=(UINT other) {
 LongInt LongInt::operator*(const LongInt &other) const {
     LongInt res(bits_num);
     FOR_IND(i)res += (other * value[i]) << (get_bits_count() - (i + 1) * BITS_BASE);
+    res.sign = sign == other.sign;
     return res;
 }
 
 
 LongInt LongInt::operator*(UINT other) const {
     LongInt res(*this);
-    res *= other;
-    return res;
+    return res *= other;
 }
 
 
 LongInt &LongInt::operator*=(const LongInt &other) {
     CHECK_SIZES(other)
-    *this = *this * other;
-    return *this;
+    return *this = *this * other;
 }
 
 
@@ -289,8 +295,6 @@ LongInt &LongInt::operator*=(UINT other) {
         value[i] = buf;
         buf >>= BITS_BASE;
     }
-    if (buf)
-        set_overflowed();
     return *this;
 }
 
@@ -300,7 +304,7 @@ LongInt LongInt::operator%(const LongInt &other) const {
     if (other == UINT_0)
         throw std::invalid_argument("Cannot divide by zero");
     if (other > *this)
-        return LongInt(bits_num);
+        return LongInt(*this);
 
     LongInt remainder(bits_num);
     // algorithm from wiki
@@ -310,7 +314,7 @@ LongInt LongInt::operator%(const LongInt &other) const {
         if (remainder >= other)
             remainder -= other;
     }
-    remainder.set_overflowed(get_overflowed() || other.get_overflowed());
+    remainder.sign = sign;
     return remainder;
 }
 
@@ -323,9 +327,7 @@ UINT LongInt::operator%(UINT other) const {
 
 
 LongInt &LongInt::operator%=(const LongInt &other) {
-    LongInt res = *this % other;
-    FOR_IND(i)value[i] = res[i];
-    return *this;
+    return *this = *this % other;
 }
 
 
@@ -342,8 +344,15 @@ LongInt &LongInt::operator%=(UINT other) {
 
 bool LongInt::operator==(const LongInt &other) const {
     CHECK_SIZES(other)
-    FOR_IND(i)if (value[i] != other[i])
+    if (sign != other.sign) {
+        if (other != 0 && *this != 0)
             return false;
+        return (other == 0) == (*this == 0);
+    }
+    FOR_IND(i) {
+        if (value[i] != other[i])
+            return false;
+    }
     return true;
 }
 
@@ -357,31 +366,38 @@ bool LongInt::operator==(UINT other) const {
 
 
 bool LongInt::operator!=(const LongInt &other) const {
-    CHECK_SIZES(other)
-    FOR_IND(i)if (value[i] != other[i])
-            return true;
-    return false;
+    return !(*this == other);
 }
 
 
 bool LongInt::operator!=(UINT other) const {
-    for (UINT i = 0; i < len - 1; i++)
-        if (value[i] != 0)
-            return true;
-    return value[len - 1] != other;
+    return !(*this == other);
 }
 
 
 bool LongInt::operator>(const LongInt &other) const {
-    FOR_IND(i)if (value[i] > other[i])
+    if (sign != other.sign) {
+        if (other != 0 && *this != 0)
+            return sign;
+        if (sign)
+            return (other == 0) != (*this == 0);
+        return false;
+    }
+    if (!sign)
+        return -(*this) < -other;
+    FOR_IND(i) {
+        if (value[i] > other[i])
             return true;
         else if (value[i] < other[i])
             return false;
+    }
     return false;
 }
 
 
 bool LongInt::operator>(UINT other) const {
+    if (!sign)
+        return false;
     for (UINT i = 0; i < len - 1; i++)
         if (value[i])
             return true;
@@ -390,33 +406,38 @@ bool LongInt::operator>(UINT other) const {
 
 
 bool LongInt::operator>=(const LongInt &other) const {
-    CHECK_SIZES(other)
-    FOR_IND(i)if (value[i] > other[i])
-            return true;
-        else if (value[i] < other[i])
-            return false;
-    return value[len - 1] == other[len - 1];
+    return *this == other || *this > other;
 }
 
 
 bool LongInt::operator>=(UINT other) const {
-    for (UINT i = 0; i < len - 1; i++)
-        if (value[i])
-            return true;
-    return value[len - 1] >= other;
+    return *this == other || *this > other;
 }
 
 
 bool LongInt::operator<(const LongInt &other) const {
-    FOR_IND(i)if (value[i] < other[i])
+    if (sign != other.sign) {
+        if (other != 0 && *this != 0)
+            return !sign;
+        if (!sign)
+            return (other == 0) != (*this == 0);
+        return false;
+    }
+    if (!sign)
+        return -(*this) > -other;
+    FOR_IND(i) {
+        if (value[i] < other[i])
             return true;
         else if (value[i] > other[i])
             return false;
+    }
     return false;
 }
 
 
 bool LongInt::operator<(UINT other) const {
+    if (!sign)
+        return *this == 0 && other != 0;
     for (UINT i = 0; i < len - 1; i++)
         if (value[i])
             return false;
@@ -425,27 +446,18 @@ bool LongInt::operator<(UINT other) const {
 
 
 bool LongInt::operator<=(const LongInt &other) const {
-    CHECK_SIZES(other)
-    FOR_IND(i)if (value[i] < other[i])
-            return true;
-        else if (value[i] > other[i])
-            return false;
-    return last_item() <= other.last_item();
+    return *this == other || *this < other;
 }
 
 
 bool LongInt::operator<=(UINT other) const {
-    for (UINT i = 0; i < len - 1; i++)
-        if (value[i])
-            return false;
-    return value[len - 1] <= other;
+    return *this == other || *this < other;
 }
 
 
 LongInt LongInt::operator|(const LongInt &other) const {
     LongInt res(*this);
-    res |= other;
-    return res;
+    return res |= other;
 }
 
 
@@ -471,8 +483,7 @@ LongInt &LongInt::operator|=(UINT other) {
 
 LongInt LongInt::operator&(const LongInt &other) const {
     LongInt res(*this);
-    res &= other;
-    return res;
+    return res &= other;
 }
 
 
@@ -499,8 +510,7 @@ LongInt &LongInt::operator&=(UINT other) {
 
 LongInt LongInt::operator^(const LongInt &other) const {
     LongInt res(*this);
-    res ^= other;
-    return res;
+    return res ^= other;
 }
 
 
@@ -526,8 +536,7 @@ LongInt &LongInt::operator^=(UINT other) {
 
 LongInt LongInt::operator<<(UINT other) const {
     LongInt res(*this);
-    res <<= other;
-    return res;
+    return res <<= other;
 }
 
 
@@ -542,9 +551,6 @@ LongInt LongInt::operator<<=(UINT other) {
         } else
             value[i] = 0;
     }
-    for (UINT i = 0; i < shift_b + (shift_s != 0); i++)
-        if (value[i] >> ((BITS_BASE - shift_s) % BITS_BASE))
-            set_overflowed();
     return *this;
 }
 
@@ -614,15 +620,17 @@ LongInt &LongInt::operator=(const LongInt &other) {
 LongInt &LongInt::operator=(UINT other) {
     FOR_IND(i)value[i] = 0;
     value[LAST] = other;
+    sign = true;
     return *this;
 }
 
 
 LongInt &LongInt::operator=(int other) {
     FOR_IND(i)value[i] = 0;
-    for (UINT ps = sizeof(other) / BITS_BASE; ps != 0; ps--)
+    for (UINT ps = sizeof(other) / (BITS_BASE); ps != 0; ps--)
         value[ps] = ((unsigned) other >> (BITS_BASE * ps)) & ((UINT) -1);
     value[LAST] = (unsigned) other & ((UINT) -1);
+    sign = other > 0;
     return *this;
 }
 
@@ -638,5 +646,20 @@ UINT LongInt::operator[](UINT index) const {
 
 
 LongInt LongInt::operator-() const {
-    return ~(*this) + 1;
+    LongInt res(*this);
+    res.sign = !sign;
+    return res;
+}
+
+// fast pow mod (need to fast check is point on the curve on not)
+// Calculate (x ** y) % z efficiently.
+LongInt LongInt::fast_pow_mod(const LongInt &y, const LongInt &z) const {
+    LongInt res(y.get_bits_count(), 1);
+    LongInt tmp(*this);
+    for (UINT i = 0; i < y.get_bits_count(); i++) {
+        if (y.get_bit(y.get_bits_count() - i - 1))
+            res = (res * tmp) % z;
+        tmp = (tmp * tmp) % z;
+    }
+    return res;
 }
