@@ -12,6 +12,7 @@
 
 #include <vector>
 #include <array>
+#include <iostream>
 
 typedef uint32_t UINT; //32bit because div and mult easier to write that way
 
@@ -23,13 +24,16 @@ typedef uint32_t UINT; //32bit because div and mult easier to write that way
 #define FOR_IND_REVERSE(i) for (UINT (i) = LAST; (i) != ((UINT) -1); (i)--)
 #define UINT_MAX ((UINT)-1)
 
-//  class LongInt;
+#define ASSERT(condition, msg) { \
+    if (!(condition)) \
+        std::cerr << "Houston ... We've Got a Problem: assertion failed at " << __FILE__ << ":" << __LINE__ \
+                  <<" (" << msg << ")"; \
+}
 
 /**
  * Unsigned number with fixed @bits_num-bit length
  *
  */
-
 class LongInt {
 private:
     const UINT bits_num;
@@ -265,66 +269,34 @@ public:
     UINT &operator[](UINT index);
 
     UINT operator[](UINT index) const;
+
+    inline LongInt operator+(const LongInt *other) const;
+
+    inline LongInt operator-(const LongInt *other) const;
+
+    inline LongInt operator/(const LongInt *other) const;
+
+    inline LongInt operator*(const LongInt *other) const;
+
+    inline LongInt operator%(const LongInt *other) const;
+
+    inline bool operator==(const LongInt *other) const;
+
+    inline bool operator>=(const LongInt *other) const;
+
+    inline bool operator<=(const LongInt *other) const;
+
+    inline bool operator>(const LongInt *other) const;
+
+    inline bool operator<(const LongInt *other) const;
+
+    inline bool operator!=(const LongInt *other) const;
+
+    inline LongInt operator|(const LongInt *other) const;
+
+    inline LongInt operator&(const LongInt *other) const;
+
+    inline LongInt operator^(const LongInt *other) const;
 };
 
-/*
-LongInt operator+(UINT first, const LongInt &other) {
-    return other + first;
-}
-
-
-LongInt operator-(UINT first, const LongInt &other) {
-    return LongInt(first) - other;
-}
-
-
-LongInt operator*(UINT first, const LongInt &other) {
-    return other * first;
-}
-
-
-bool operator==(UINT first, const LongInt &other) {
-    return other == first;
-}
-
-
-bool operator!=(UINT first, const LongInt &other) {
-    return other != first;
-}
-
-
-bool operator>(UINT first, const LongInt &other) {
-    return other <= first;
-}
-
-
-bool operator>=(UINT first, const LongInt &other) {
-    return other <= first;
-}
-
-
-bool operator<(UINT first, const LongInt &other) {
-    return other >= first;
-}
-
-
-bool operator<=(UINT first, const LongInt &other) {
-    return other >= first;
-}
-
-
-LongInt operator|(UINT first, const LongInt &other) {
-    return other | first;
-}
-
-
-LongInt operator&(UINT first, const LongInt &other) {
-    return other & first;
-}
-
-
-LongInt operator^(UINT first, const LongInt &other) {
-    return other ^ first;
-}
-*/
 #endif //ELIPTIC_CURVES_CYPHER_LONGINT_H

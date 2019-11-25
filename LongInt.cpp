@@ -84,7 +84,7 @@ std::string LongInt::to_string(UINT radix, bool group) const {
     std::string res;
     LongInt tmp(*this);
     UINT l = 1;
-    while (tmp != 0) {
+    while (tmp != (UINT)0) {
         res.push_back(itoc(tmp % radix));
         tmp /= (radix);
         if (group && l++ % 4 == 0)
@@ -225,7 +225,7 @@ LongInt &LongInt::operator-=(UINT other) {
 
 LongInt LongInt::operator/(const LongInt &other) const {
     CHECK_SIZES(other)
-    if (other == 0)
+    if (other == (UINT)0)
         throw std::invalid_argument("Cannot divide by zero");
 
     LongInt remainder(bits_num);
@@ -304,7 +304,7 @@ LongInt &LongInt::operator*=(UINT other) {
 
 LongInt LongInt::operator%(const LongInt &other) const {
     CHECK_SIZES(other)
-    if (other == 0)
+    if (other == (UINT)0)
         throw std::invalid_argument("Cannot divide by zero");
     if (other > *this)
         return LongInt(bits_num);
@@ -652,4 +652,60 @@ UINT LongInt::operator[](UINT index) const {
 
 LongInt LongInt::operator-() const {
     return ~(*this) + 1;
+}
+
+LongInt LongInt::operator+(const LongInt *other) const {
+    return *this + *other;
+}
+
+LongInt LongInt::operator-(const LongInt *other) const {
+    return *this - *other;
+}
+
+LongInt LongInt::operator/(const LongInt *other) const {
+    return *this / *other;
+}
+
+LongInt LongInt::operator*(const LongInt *other) const {
+    return *this * *other;
+}
+
+LongInt LongInt::operator%(const LongInt *other) const {
+    return *this % *other;
+}
+
+bool LongInt::operator==(const LongInt *other) const {
+    return *this == *other;
+}
+
+bool LongInt::operator>=(const LongInt *other) const {
+    return *this >= *other;
+}
+
+bool LongInt::operator<=(const LongInt *other) const {
+    return *this <= *other;
+}
+
+bool LongInt::operator>(const LongInt *other) const {
+    return *this > *other;
+}
+
+bool LongInt::operator<(const LongInt *other) const {
+    return *this < *other;
+}
+
+bool LongInt::operator!=(const LongInt *other) const {
+    return *this != *other;
+}
+
+LongInt LongInt::operator|(const LongInt *other) const {
+    return *this | *other;
+}
+
+LongInt LongInt::operator&(const LongInt *other) const {
+    return *this & *other;
+}
+
+LongInt LongInt::operator^(const LongInt *other) const {
+    return *this ^ *other;
 }
