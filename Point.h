@@ -14,7 +14,6 @@ class EllipticCurve;
 
 class Point {
 private:
-    const LongInt *p;
     LongInt x, y;
     bool is_inf = false;
     const EllipticCurve *curve;
@@ -35,6 +34,9 @@ public:
     bool on_curve() const;
 
     static Point inf_point(const EllipticCurve *curve);
+
+    const LongInt &get_x() const;
+    const LongInt &get_y() const;
 
     std::string to_string() const;
 

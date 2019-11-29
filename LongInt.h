@@ -36,7 +36,7 @@ typedef uint32_t UINT; //32bit because add, sub and mult easier to write that wa
  */
 class LongInt {
 private:
-    const UINT bits_num;
+    UINT bits_num;
     std::vector<UINT> value;
     // array that represents this number. Big-endian (?)
     UINT len = ARR_SIZE;

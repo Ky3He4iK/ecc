@@ -302,7 +302,7 @@ LongInt &LongInt::operator*=(UINT other) {
 LongInt LongInt::operator%(const LongInt &other) const {
     CHECK_SIZES(other)
     if (other == UINT_0)
-        throw std::invalid_argument("Cannot divide by zero");
+        return *this;
     if (other > *this)
         return LongInt(*this);
 
@@ -320,6 +320,8 @@ LongInt LongInt::operator%(const LongInt &other) const {
 
 
 UINT LongInt::operator%(UINT other) const {
+    if (other == UINT_0)
+        return last_item();
     uint64_t buf = 0;
     FOR_IND(i)buf = ((buf << BITS_BASE) + value[i]) % other;
     return (UINT) buf;
