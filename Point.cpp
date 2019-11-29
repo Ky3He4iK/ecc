@@ -7,7 +7,7 @@
 #include <stdexcept>
 #include <exception>
 
-#define ASSERT_ON_CURVE(point) ASSERT_((point).on_curve(), "Point not on curve!");
+#define ASSERT_ON_CURVE(point) ASSERT_(curve == nullptr || (point).curve->contains(point), "Point not on curve!");
 
 std::array<LongInt, 3> Point::extended_gcd(const LongInt &a, const LongInt &b) {
 #define GCD_STEP(v, old_v, tmp, q) { \
@@ -15,23 +15,38 @@ std::array<LongInt, 3> Point::extended_gcd(const LongInt &a, const LongInt &b) {
     (v) = (old_v) - (q) * (v); \
     (old_v) = (tmp); \
 }
+    if (a == 0)
+        return {b, LongInt(LONG_INT_LEN), LongInt(LongInt(LONG_INT_LEN, 1))};
 
-    LongInt s(a.get_bits_count(), (UINT) 0), old_s(a.get_bits_count(), 1);
-    LongInt t(a.get_bits_count(), 1), old_t(a.get_bits_count(), (UINT) 0);
+    LongInt s(a.get_bits_count(), UINT_0), old_s(a.get_bits_count(), 1);
+    LongInt t(a.get_bits_count(), 1), old_t(a.get_bits_count(), UINT_0);
     LongInt r(b), old_r(a);
-    while (r != (UINT) 0) {
+    while (r != UINT_0) {
         LongInt q = old_r / r;
         LongInt tmp = r;
-        GCD_STEP(r, old_r, tmp, q)
-        GCD_STEP(s, old_s, tmp, q)
-        GCD_STEP(t, old_t, tmp, q)
+
+        r = old_r - q * r;
+        old_r = tmp;
+        tmp = s;
+        s = old_s - q * s;
+        old_s = tmp;
+        tmp = t;
+        t = old_t - q * t;
+        old_t = tmp;
+
+//        GCD_STEP(r, old_r, tmp, q)
+//        GCD_STEP(s, old_s, tmp, q)
+//        GCD_STEP(t, old_t, tmp, q)
     }
     return {old_r, old_s, old_t};
 }
 
-Point::Point(const EllipticCurve *_curve, const LongInt &_x, const LongInt &_y) : curve(_curve),
-                                                                                  x(_x % _curve->get_p()),
-                                                                                  y(_y % _curve->get_p()) {}
+Point::Point(const EllipticCurve *_curve, const LongInt &_x, const LongInt &_y) : curve(_curve), x(_x), y(_y) {
+    if (curve) {
+        x = x % curve->get_p();
+        y = y % curve->get_p();
+    }
+}
 
 
 // Returns the result of this + other according to the group law.
@@ -47,11 +62,14 @@ Point Point::operator+(const Point &other) const {
     if (x == other.x) {
         if (y != other.y)
             return inf_point(curve);
-        m = ((3 * x * x + curve->get_a()) * inverse_mod(2 * y, curve->get_p())) % curve->get_p();
+        if (y == 0)
+            return inf_point(curve);
+        m = ((3 * x * x + curve->get_a() * x + curve->get_b()) * inverse_mod(y << 1, curve->get_p())) % curve->get_p();
     } else
         m = ((y - other.y) * inverse_mod(x - other.x, curve->get_p())) % curve->get_p();
-    LongInt xr = m * m - x - other.x;
-    Point res(curve, xr, (curve->get_p() * 2 - y - m * (xr - x) % curve->get_p()) % curve->get_p());
+    LongInt xr = (m * m - x - other.x - curve->get_a()) % curve->get_p();
+//    Point res(curve, xr, (curve->get_p() * 2 - y - m * (xr - x)) % curve->get_p());
+    Point res(curve, xr, (m * (x - xr) - y) % curve->get_p());
 
     ASSERT_ON_CURVE(res)
     return res;
@@ -62,7 +80,7 @@ Point Point::operator+(const Point &other) const {
 Point Point::operator*(const LongInt &k) const {
     ASSERT_ON_CURVE(*this)
     Point res = Point(curve, LongInt(0), LongInt(0));
-    if (k % curve->get_n() == UINT_0) {
+    if (k % curve->get_p() == UINT_0) {
         res.is_inf = true;
     } else if (k < UINT_0)
         return (-*this) * (-k);
@@ -111,14 +129,20 @@ Point Point::operator-() const {
     ASSERT_ON_CURVE(*this)
     if (is_inf)
         return Point::inf_point(curve);
-    Point res = {curve, x, (curve->get_p() - y) % curve->get_p()};
-    ASSERT_ON_CURVE(*this)
-    return res;
+    if (curve) {
+        Point res = {curve, x, (curve->get_p() - y) % curve->get_p()};
+        ASSERT_ON_CURVE(*this)
+        return res;
+    } else {
+        Point res = {curve, x, -y};
+        return res;
+    }
 }
 
 // Returns true if the given point lies on the elliptic curve
 bool Point::on_curve() const {
-    return is_inf | ((y * y - x * x * x - curve->get_a() * x - curve->get_b()) % curve->get_p() == UINT_0);
+    return is_inf || curve == nullptr ||
+           ((y * y - x * x * x - curve->get_a() * x - curve->get_b()) % curve->get_p() == UINT_0);
 }
 
 std::string Point::to_string() const {
@@ -136,6 +160,7 @@ bool Point::operator==(const Point &other) const {
 const LongInt &Point::get_x() const {
     return x;
 }
+
 const LongInt &Point::get_y() const {
     return y;
 }

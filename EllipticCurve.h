@@ -5,6 +5,8 @@
 #ifndef ECC_ELLIPTICCURVE_H
 #define ECC_ELLIPTICCURVE_H
 
+#include <random>
+
 #include "LongInt.h"
 #include "Point.h"
 
@@ -14,13 +16,15 @@ class Point;
 // general Weierstrass cubic y^2 = x^3 + ax^2 + bx + c over any field
 // y**2 = (x**3 + a*x + b) % p
 // (4 * a**3 + 27 * b**2) % p != 0
+#define LONG_INT_LEN 256
 class EllipticCurve {
 private:
     LongInt a, b, c, p, exp;
+    std::random_device random;
 public:
     EllipticCurve(const LongInt &_a, const LongInt &_b, const LongInt &_c, const LongInt &_p, const LongInt &_exp);
 
-    bool contains(const Point &p) const = 0;
+    bool contains(const Point &point) const;
 
     const LongInt &get_p() const {
         return p;
@@ -42,15 +46,13 @@ public:
         return exp;
     }
 
-    const LongInt &get_n() const {
-//        return &n;
-    }
-
     std::string to_string() const;
 
     LongInt discriminant() const;
 
     UINT order(const Point &point) const;
+
+    std::pair<UINT, Point> generate_keypair(const Point &point);
 
     static EllipticCurve getSECP256k1();
 };

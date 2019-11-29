@@ -13,6 +13,7 @@
 #include <vector>
 #include <array>
 #include <iostream>
+#include <random>
 
 typedef uint32_t UINT; //32bit because add, sub and mult easier to write that way
 
@@ -27,7 +28,7 @@ typedef uint32_t UINT; //32bit because add, sub and mult easier to write that wa
 #define ASSERT_(condition, msg) { \
     if (!(condition)) \
         std::cerr << "Houston ... We've Got a Problem: assertion failed at " << __FILE__ << ":" << __LINE__ \
-                  << " At func " << __FUNCTION__ << ": (" << msg << ")"; \
+                  << " At func " << __FUNCTION__ << ": (" << msg << ")" << '\n'; \
 }
 
 /**
@@ -75,11 +76,15 @@ public:
 
     [[nodiscard]] UINT get_actual_bits() const;
 
-    bool get_sign() const {
+    [[nodiscard]] bool get_sign() const {
         return sign;
     }
 
-    LongInt fast_pow_mod(const LongInt &y, const LongInt &z) const;
+    [[nodiscard]] LongInt fast_pow_mod(const LongInt &y, const LongInt &z) const;
+
+    static LongInt get_random(UINT bits_num, std::random_device &random);
+
+    LongInt abs() const;
 
     LongInt operator+(const LongInt &other) const;
 

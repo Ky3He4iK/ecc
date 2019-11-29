@@ -106,8 +106,8 @@ UINT LongInt::get_len() const {
 
 
 void LongInt::set_bit(UINT pos, bool val) {
-    UINT mask = UINT_MAX - ((UINT) 1 << (pos % BITS_BASE));
-    value[pos / BITS_BASE] = (value[pos / BITS_BASE] & mask) | (UINT) (val << (pos % BITS_BASE));
+    UINT mask = UINT_MAX - ((UINT) 1 << (BITS_BASE - pos % BITS_BASE - 1));
+    value[pos / BITS_BASE] = (value[pos / BITS_BASE] & mask) | (UINT) (val << (BITS_BASE - pos % BITS_BASE - 1));
 }
 
 
@@ -142,7 +142,7 @@ LongInt &LongInt::operator+=(const LongInt &other) {
     if (sign) {
         if (!other.sign)
             return *this -= -other.sign;
-    } else if (!other.sign) {
+    } else if (other.sign) {
         *this = other - -(*this);
         return *this;
     }
@@ -191,7 +191,7 @@ LongInt &LongInt::operator-=(const LongInt &other) {
     CHECK_SIZES(other)
     if (sign) {
         if (!other.sign)
-            return *this += -other.sign;
+            return *this += -other;
     } else if (!other.sign) {
         *this = -(*this + other);
         return *this;
@@ -228,15 +228,18 @@ LongInt LongInt::operator/(const LongInt &other) const {
     if (other == UINT_0)
         throw std::invalid_argument("Cannot divide by zero");
 
+    LongInt otherAbs = other.abs();
     LongInt remainder(bits_num);
     LongInt res(bits_num);
     // algorithm from wiki
     for (UINT i = get_bits_count() - 1; i < get_bits_count(); i--) {
         remainder = (remainder << 1) | get_bit(get_bits_count() - i - 1);
-        res = (res << 1) | (remainder >= other);
+        res <<= 1;
 //        res.set_bit(i, remainder >= other);
-        if (remainder >= other)
-            remainder -= other;
+        if (remainder >= otherAbs) {
+            remainder -= otherAbs;
+            res.set_bit(res.get_bits_count() - 1);
+        }
     }
     res.sign = sign == other.sign;
     return res;
@@ -270,7 +273,9 @@ LongInt &LongInt::operator/=(UINT other) {
 
 LongInt LongInt::operator*(const LongInt &other) const {
     LongInt res(bits_num);
-    FOR_IND(i)res += (other * value[i]) << (get_bits_count() - (i + 1) * BITS_BASE);
+    FOR_IND(i) {
+        res += ((other * value[i]) << (get_bits_count() - (i + 1) * BITS_BASE)).abs();
+    }
     res.sign = sign == other.sign;
     return res;
 }
@@ -303,8 +308,14 @@ LongInt LongInt::operator%(const LongInt &other) const {
     CHECK_SIZES(other)
     if (other == UINT_0)
         return *this;
-    if (other > *this)
-        return LongInt(*this);
+    if (*this == 0)
+        return LongInt(bits_num);
+    if (other.abs() > this->abs()) {
+        if (sign == other.sign)
+            return *this;
+        else
+            return (*this) + other;
+    }
 
     LongInt remainder(bits_num);
     // algorithm from wiki
@@ -314,7 +325,9 @@ LongInt LongInt::operator%(const LongInt &other) const {
         if (remainder >= other)
             remainder -= other;
     }
-    remainder.sign = sign;
+    if (sign != other.sign && remainder != 0)
+        remainder = other.abs() - remainder.abs();
+    remainder.sign = other.sign;
     return remainder;
 }
 
@@ -324,6 +337,8 @@ UINT LongInt::operator%(UINT other) const {
         return last_item();
     uint64_t buf = 0;
     FOR_IND(i)buf = ((buf << BITS_BASE) + value[i]) % other;
+    if (!sign && buf != 0)
+        return other - (UINT) buf;
     return (UINT) buf;
 }
 
@@ -340,6 +355,8 @@ LongInt &LongInt::operator%=(UINT other) {
         value[i] = 0;
     }
     value[LAST] = buf;
+    if (!sign && buf != 0)
+        return *this = other - *this;
     return *this;
 }
 
@@ -615,6 +632,7 @@ const LongInt LongInt::operator--(int) {
 LongInt &LongInt::operator=(const LongInt &other) {
     CHECK_SIZES(other)
     FOR_IND(i)value[i] = other[i];
+    sign = other.sign;
     return *this;
 }
 
@@ -664,4 +682,15 @@ LongInt LongInt::fast_pow_mod(const LongInt &y, const LongInt &z) const {
         tmp = (tmp * tmp) % z;
     }
     return res;
+}
+
+LongInt LongInt::get_random(UINT bits_num, std::random_device &random) {
+    LongInt res(bits_num);
+    for (UINT i = 0; i < bits_num; i++)
+        res.set_bit(i, random() & 1);
+    return res;
+}
+
+LongInt LongInt::abs() const {
+    return (*this > 0) ? *this : -(*this);
 }
