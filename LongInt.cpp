@@ -668,6 +668,8 @@ UINT &LongInt::operator[](UINT index) {
 
 
 UINT LongInt::operator[](UINT index) const {
+    if (index >= len)
+        return 0;
     return this->value[index];
 }
 
