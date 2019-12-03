@@ -84,7 +84,7 @@ public:
 
     static LongInt get_random(UINT bits_num, std::random_device &random);
 
-    LongInt abs() const;
+    [[nodiscard]] LongInt abs() const;
 
     LongInt operator+(const LongInt &other) const;
 

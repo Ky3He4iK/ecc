@@ -6,7 +6,7 @@
 #include <iostream>
 
 #define CHECK_SIZES(b) { \
-    if (bits_num != (b).bits_num) \
+    if (bits_num != (b).bits_num && false) \
         throw std::invalid_argument( \
             std::string("Dimensions didn't match! (") + LongInt(BITS_BASE, bits_num).to_string() + " != " + \
                     LongInt(BITS_BASE, (b).bits_num).to_string()); \
@@ -74,28 +74,34 @@ std::string LongInt::to_string(UINT radix, bool group) const {
     LongInt tmp(*this);
     UINT l = 1;
     while (tmp != UINT_0) {
-        res.push_back(itoc(tmp % radix));
+        res.push_back(itoc(tmp.abs() % radix));
         tmp /= (radix);
         if (group && l++ % 4 == 0)
             res.push_back('_');
     }
-    if (!res.empty() && res.back() == '_')
-        res.pop_back();
-    if (!sign && !res.empty())
-        res.push_back('-');
-    reverse(res.begin(), res.end());
     if (res.empty())
-        res = "0";
+        res.push_back('0');
+    else {
+        if (res.back() == '_')
+            res.pop_back();
+        if (!sign)
+            res.push_back('-');
+    }
+    reverse(res.begin(), res.end());
     return res;
 }
 
 
 UINT LongInt::last_item() const {
+    if (len == 0)
+        return 0;
     return value[LAST];
 }
 
 
 bool LongInt::get_bit(UINT pos) const {
+    if (len == 0)
+        return 0;
     return (value[pos / BITS_BASE] >> ((BITS_BASE - (pos % BITS_BASE) - 1) % BITS_BASE)) & (UINT) 1;
 }
 
@@ -119,7 +125,6 @@ UINT LongInt::get_actual_bits() const {
     for (UINT i = 0; i < get_bits_count(); i++)
         if (get_bit(i))
             return get_bits_count() - i;
-
     return 0;
 }
 
@@ -377,6 +382,8 @@ bool LongInt::operator==(const LongInt &other) const {
 
 
 bool LongInt::operator==(UINT other) const {
+    if (len == 0)
+        return other == 0;
     for (UINT i = 0; i < len - 1; i++)
         if (value[i] != 0)
             return false;
@@ -456,7 +463,7 @@ bool LongInt::operator<(const LongInt &other) const {
 
 bool LongInt::operator<(UINT other) const {
     if (!sign)
-        return *this == 0 && other != 0;
+        return other != 0 || *this != 0;
     for (UINT i = 0; i < len - 1; i++)
         if (value[i])
             return false;

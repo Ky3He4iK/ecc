@@ -16,7 +16,7 @@ class Point;
 // general Weierstrass cubic y^2 = x^3 + ax^2 + bx + c over any field
 // y**2 = (x**3 + a*x + b) % p
 // (4 * a**3 + 27 * b**2) % p != 0
-#define LONG_INT_LEN 256
+#define LONG_INT_LEN 64
 class EllipticCurve {
 private:
     LongInt a, b, c, p, exp;

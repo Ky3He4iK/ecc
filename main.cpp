@@ -211,9 +211,9 @@ bool testLongInt() {
 
 bool testCurvesNPoints() {
     cout << "Curve and points:\n";
-    EllipticCurve curve(LongInt(256), LongInt(256), LongInt(256, 7),
-                        LongInt(256, 211), LongInt(256, 1));
-    Point point(&curve, LongInt(256, 150), LongInt(256, 22));
+    EllipticCurve curve(LongInt(LONG_INT_LEN), LongInt(LONG_INT_LEN), LongInt(LONG_INT_LEN, 7),
+                        LongInt(LONG_INT_LEN, 211), LongInt(LONG_INT_LEN, 1));
+    Point point(&curve, LongInt(LONG_INT_LEN, 150), LongInt(LONG_INT_LEN, 22));
     cout << "Smaller curve: " << curve.to_string() << "; generator point: " << point.to_string() << '\n';
     UINT n = curve.order(point);
     cout << "n: " << n << '\n';
@@ -268,13 +268,13 @@ int main() {
     cout << b.to_string(10) << '\t' << b.to_string(16) << '\n';
     cout << (b * 2).to_string(10) << '\n';
 
-
+    testCurvesNPoints();
 
     if (testLongInt())
         cout << "All tests have passed!\n";
     else
         cout << "ERROR!\n";
-    testCurvesNPoints();
+
     LongInt bl(128, arrl);
     LongInt c = bl * 2;
     LongInt d = bl * c;

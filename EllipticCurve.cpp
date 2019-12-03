@@ -49,6 +49,7 @@ UINT EllipticCurve::order(const Point &point) const {
     while (!q.get_inf()) {
         q = point + q;
         ++order_p;
+        std::cerr << order_p << ' ' << q.to_string() << '\n';
     }
     return order_p;
 }

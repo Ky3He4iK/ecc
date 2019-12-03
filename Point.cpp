@@ -22,6 +22,8 @@ std::array<LongInt, 3> Point::extended_gcd(const LongInt &a, const LongInt &b) {
     LongInt t(a.get_bits_count(), 1), old_t(a.get_bits_count(), UINT_0);
     LongInt r(b), old_r(a);
     while (r != UINT_0) {
+        std::cerr << old_s.to_string() << ' ' << s.to_string() << '\n' << old_t.to_string() << ' ' << t.to_string()
+                  << '\n' << old_r.to_string() << ' ' << r.to_string() << "\n\n";
         LongInt q = old_r / r;
         LongInt tmp = r;
 
@@ -66,7 +68,7 @@ Point Point::operator+(const Point &other) const {
             return inf_point(curve);
         m = ((3 * x * x + curve->get_a() * x + curve->get_b()) * inverse_mod(y << 1, curve->get_p())) % curve->get_p();
     } else
-        m = ((y - other.y) * inverse_mod(x - other.x, curve->get_p())) % curve->get_p();
+        m = ((other.y - y) * inverse_mod((other.x - x) % curve->get_p(), curve->get_p())) % curve->get_p();
     LongInt xr = (m * m - x - other.x - curve->get_a()) % curve->get_p();
 //    Point res(curve, xr, (curve->get_p() * 2 - y - m * (xr - x)) % curve->get_p());
     Point res(curve, xr, (m * (x - xr) - y) % curve->get_p());
