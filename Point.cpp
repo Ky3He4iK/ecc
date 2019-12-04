@@ -22,8 +22,8 @@ std::array<LongInt, 3> Point::extended_gcd(const LongInt &a, const LongInt &b) {
     LongInt t(a.get_bits_count(), 1), old_t(a.get_bits_count(), UINT_0);
     LongInt r(b), old_r(a);
     while (r != UINT_0) {
-        std::cerr << old_s.to_string() << ' ' << s.to_string() << '\n' << old_t.to_string() << ' ' << t.to_string()
-                  << '\n' << old_r.to_string() << ' ' << r.to_string() << "\n\n";
+//        std::cerr << old_s.to_string() << ' ' << s.to_string() << '\n' << old_t.to_string() << ' ' << t.to_string()
+//                  << '\n' << old_r.to_string() << ' ' << r.to_string() << "\n\n";
         LongInt q = old_r / r;
         LongInt tmp = r;
 

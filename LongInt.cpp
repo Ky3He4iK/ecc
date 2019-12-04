@@ -5,12 +5,16 @@
 #include "LongInt.h"
 #include <iostream>
 
-#define CHECK_SIZES(b) { \
-    if (bits_num != (b).bits_num && false) \
-        throw std::invalid_argument( \
-            std::string("Dimensions didn't match! (") + LongInt(BITS_BASE, bits_num).to_string() + " != " + \
-                    LongInt(BITS_BASE, (b).bits_num).to_string()); \
+#define FIX_SIZES(b) { \
+    auto ol = (b).get_actual_bits(); \
+    if (ol > get_bits_count()) \
+        (*this) = changeLen(ol); \
 }
+
+#define FIX_SIZE_UINT { \
+    if (len == 0) \
+        value.resize(1); \
+};
 
 LongInt::LongInt(UINT _bits_num, const UINT *init) : bits_num(_bits_num) {
 //        value = new UINT[ARR_SIZE];
@@ -47,7 +51,7 @@ LongInt LongInt::changeLen(UINT new_bits_num) const {
         if (n_len < len)
             res[i] = value[i + len - n_len];
         else
-            res[i + n_len - len] = value[i];
+            res[i + n_len - len] = get(i);
     res.sign = sign;
     return res;
 }
@@ -93,9 +97,7 @@ std::string LongInt::to_string(UINT radix, bool group) const {
 
 
 UINT LongInt::last_item() const {
-    if (len == 0)
-        return 0;
-    return value[LAST];
+    return get(LAST);
 }
 
 
@@ -143,7 +145,7 @@ LongInt LongInt::operator+(UINT other) const {
 
 
 LongInt &LongInt::operator+=(const LongInt &other) {
-    CHECK_SIZES(other)
+    FIX_SIZES(other)
     if (sign) {
         if (!other.sign)
             return *this -= -other.sign;
@@ -163,6 +165,7 @@ LongInt &LongInt::operator+=(const LongInt &other) {
 
 
 LongInt &LongInt::operator+=(UINT other) {
+    FIX_SIZE_UINT
     uint64_t buf = 0;
     FOR_IND_REVERSE(i) {
         buf = buf + (uint64_t) value[i];
@@ -190,10 +193,10 @@ LongInt LongInt::operator-(UINT other) const {
 
 
 LongInt &LongInt::operator-=(const LongInt &other) {
+    FIX_SIZES(other)
     if (other > *this)
         return *this = -(other - *this);
 
-    CHECK_SIZES(other)
     if (sign) {
         if (!other.sign)
             return *this += -other;
@@ -213,6 +216,7 @@ LongInt &LongInt::operator-=(const LongInt &other) {
 
 
 LongInt &LongInt::operator-=(UINT other) {
+    FIX_SIZE_UINT
     if (other > *this)
         return *this = -(other - *this);
 
@@ -229,13 +233,13 @@ LongInt &LongInt::operator-=(UINT other) {
 
 
 LongInt LongInt::operator/(const LongInt &other) const {
-    CHECK_SIZES(other)
     if (other == UINT_0)
         throw std::invalid_argument("Cannot divide by zero");
 
     LongInt otherAbs = other.abs();
-    LongInt remainder(bits_num);
-    LongInt res(bits_num);
+    auto bits = std::max(bits_num, get_actual_bits());
+    LongInt remainder(bits);
+    LongInt res(bits);
     // algorithm from wiki
     for (UINT i = get_bits_count() - 1; i < get_bits_count(); i--) {
         remainder = (remainder << 1) | get_bit(get_bits_count() - i - 1);
@@ -265,6 +269,7 @@ LongInt &LongInt::operator/=(const LongInt &other) {
 
 
 LongInt &LongInt::operator/=(UINT other) {
+    FIX_SIZE_UINT
     uint64_t buf = 0;
     FOR_IND(i) {
         buf = (buf << BITS_BASE) + value[i];
@@ -277,9 +282,9 @@ LongInt &LongInt::operator/=(UINT other) {
 
 
 LongInt LongInt::operator*(const LongInt &other) const {
-    LongInt res(bits_num);
+    LongInt res(std::max(bits_num, get_actual_bits()));
     FOR_IND(i) {
-        res += ((other * value[i]) << (get_bits_count() - (i + 1) * BITS_BASE)).abs();
+        res += ((other * get(i)) << (get_bits_count() - (i + 1) * BITS_BASE)).abs();
     }
     res.sign = sign == other.sign;
     return res;
@@ -293,12 +298,13 @@ LongInt LongInt::operator*(UINT other) const {
 
 
 LongInt &LongInt::operator*=(const LongInt &other) {
-    CHECK_SIZES(other)
+    FIX_SIZES(other)
     return *this = *this * other;
 }
 
 
 LongInt &LongInt::operator*=(UINT other) {
+    FIX_SIZE_UINT
     uint64_t buf = 0;
     FOR_IND_REVERSE(i) {
         buf = value[i] * (uint64_t) other + buf;
@@ -310,7 +316,6 @@ LongInt &LongInt::operator*=(UINT other) {
 
 
 LongInt LongInt::operator%(const LongInt &other) const {
-    CHECK_SIZES(other)
     if (other == UINT_0)
         return *this;
     if (*this == 0)
@@ -341,7 +346,7 @@ UINT LongInt::operator%(UINT other) const {
     if (other == UINT_0)
         return last_item();
     uint64_t buf = 0;
-    FOR_IND(i)buf = ((buf << BITS_BASE) + value[i]) % other;
+    FOR_IND(i)buf = ((buf << BITS_BASE) + get(i)) % other;
     if (!sign && buf != 0)
         return other - (UINT) buf;
     return (UINT) buf;
@@ -354,6 +359,7 @@ LongInt &LongInt::operator%=(const LongInt &other) {
 
 
 LongInt &LongInt::operator%=(UINT other) {
+    FIX_SIZE_UINT
     uint64_t buf = 0;
     FOR_IND(i) {
         buf = ((buf << BITS_BASE) + value[i]) % other;
@@ -367,14 +373,13 @@ LongInt &LongInt::operator%=(UINT other) {
 
 
 bool LongInt::operator==(const LongInt &other) const {
-    CHECK_SIZES(other)
     if (sign != other.sign) {
         if (other != 0 && *this != 0)
             return false;
         return (other == 0) == (*this == 0);
     }
     FOR_IND(i) {
-        if (value[i] != other[i])
+        if (get(i) != other[i])
             return false;
     }
     return true;
@@ -385,7 +390,7 @@ bool LongInt::operator==(UINT other) const {
     if (len == 0)
         return other == 0;
     for (UINT i = 0; i < len - 1; i++)
-        if (value[i] != 0)
+        if (get(i) != 0)
             return false;
     return value[len - 1] == other;
 }
@@ -412,9 +417,9 @@ bool LongInt::operator>(const LongInt &other) const {
     if (!sign)
         return -(*this) < -other;
     FOR_IND(i) {
-        if (value[i] > other[i])
+        if (get(i) > other[i])
             return true;
-        else if (value[i] < other[i])
+        else if (get(i) < other[i])
             return false;
     }
     return false;
@@ -425,7 +430,7 @@ bool LongInt::operator>(UINT other) const {
     if (!sign)
         return false;
     for (UINT i = 0; i < len - 1; i++)
-        if (value[i])
+        if (get(i))
             return true;
     return value[len - 1] > other;
 }
@@ -452,9 +457,9 @@ bool LongInt::operator<(const LongInt &other) const {
     if (!sign)
         return -(*this) > -other;
     FOR_IND(i) {
-        if (value[i] < other[i])
+        if (get(i) < other[i])
             return true;
-        else if (value[i] > other[i])
+        else if (get(i) > other[i])
             return false;
     }
     return false;
@@ -465,7 +470,7 @@ bool LongInt::operator<(UINT other) const {
     if (!sign)
         return other != 0 || *this != 0;
     for (UINT i = 0; i < len - 1; i++)
-        if (value[i])
+        if (get(i))
             return false;
     return value[len - 1] < other;
 }
@@ -495,13 +500,14 @@ LongInt LongInt::operator|(UINT other) const {
 
 
 LongInt &LongInt::operator|=(const LongInt &other) {
-    CHECK_SIZES(other)
+    FIX_SIZES(other)
     FOR_IND(i) value[i] |= other[i];
     return *this;
 }
 
 
 LongInt &LongInt::operator|=(UINT other) {
+    FIX_SIZE_UINT
     value[LAST] |= other;
     return *this;
 }
@@ -514,20 +520,20 @@ LongInt LongInt::operator&(const LongInt &other) const {
 
 
 LongInt LongInt::operator&(UINT other) const {
-    LongInt res(bits_num);
-    res[LAST] = value[LAST] & other;
-    return res;
+    LongInt res(*this);
+    return res &= other;
 }
 
 
 LongInt &LongInt::operator&=(const LongInt &other) {
-    CHECK_SIZES(other)
+    FIX_SIZES(other)
     FOR_IND(i)value[i] &= other[i];
     return *this;
 }
 
 
 LongInt &LongInt::operator&=(UINT other) {
+    FIX_SIZE_UINT
     FOR_IND(i)value[i] = 0;
     value[LAST] &= other;
     return *this;
@@ -548,13 +554,14 @@ LongInt LongInt::operator^(UINT other) const {
 
 
 LongInt &LongInt::operator^=(const LongInt &other) {
-    CHECK_SIZES(other)
+    FIX_SIZES(other)
     FOR_IND(i)value[i] ^= other[i];
     return *this;
 }
 
 
 LongInt &LongInt::operator^=(UINT other) {
+    FIX_SIZE_UINT
     value[LAST] ^= other;
     return *this;
 }
@@ -567,6 +574,7 @@ LongInt LongInt::operator<<(UINT other) const {
 
 
 LongInt LongInt::operator<<=(UINT other) {
+    FIX_SIZE_UINT
     UINT shift_b = other / BITS_BASE, shift_s = other % BITS_BASE;
     FOR_IND(i) {
         UINT ni = i + shift_b;
@@ -589,6 +597,7 @@ LongInt LongInt::operator>>(UINT other) const {
 
 
 LongInt LongInt::operator>>=(UINT other) {
+    FIX_SIZE_UINT
     UINT shift_b = other / BITS_BASE, shift_s = other % BITS_BASE;
     FOR_IND_REVERSE(i) {
         UINT ni = i - shift_b;
@@ -605,7 +614,7 @@ LongInt LongInt::operator>>=(UINT other) {
 
 LongInt LongInt::operator~() const {
     LongInt res(bits_num);
-    FOR_IND(i)res[i] = ~value[i];
+    FOR_IND(i)res[i] = ~get(i);
     return res;
 }
 
@@ -635,16 +644,8 @@ const LongInt LongInt::operator--(int) {
     return res;
 }
 
-
-LongInt &LongInt::operator=(const LongInt &other) {
-    CHECK_SIZES(other)
-    FOR_IND(i)value[i] = other[i];
-    sign = other.sign;
-    return *this;
-}
-
-
 LongInt &LongInt::operator=(UINT other) {
+    FIX_SIZE_UINT
     FOR_IND(i)value[i] = 0;
     value[LAST] = other;
     sign = true;
@@ -653,6 +654,7 @@ LongInt &LongInt::operator=(UINT other) {
 
 
 LongInt &LongInt::operator=(int other) {
+    FIX_SIZE_UINT
     FOR_IND(i)value[i] = 0;
     for (UINT ps = sizeof(other) / (BITS_BASE); ps != 0; ps--)
         value[ps] = ((unsigned) other >> (BITS_BASE * ps)) & ((UINT) -1);
@@ -702,4 +704,10 @@ LongInt LongInt::get_random(UINT bits_num, std::random_device &random) {
 
 LongInt LongInt::abs() const {
     return (*this > 0) ? *this : -(*this);
+}
+
+UINT LongInt::get(UINT ind) const {
+    if (ind >= len)
+        return 0;
+    return value[ind];
 }

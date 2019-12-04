@@ -80,6 +80,8 @@ public:
         return sign;
     }
 
+    UINT get(UINT ind) const;
+
     [[nodiscard]] LongInt fast_pow_mod(const LongInt &y, const LongInt &z) const;
 
     static LongInt get_random(UINT bits_num, std::random_device &random);
@@ -265,7 +267,7 @@ public:
 
     const LongInt operator--(int);
 
-    LongInt &operator=(const LongInt &other);
+    LongInt &operator=(const LongInt &other) = default;
 
     LongInt &operator=(UINT other);
 
