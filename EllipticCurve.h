@@ -52,7 +52,7 @@ public:
 
     UINT order(const Point &point) const;
 
-    std::pair<UINT, Point> generate_keypair(const Point &point);
+    std::pair<UINT, Point> generate_keypair(const Point &point, UINT curve_order);
 
     static EllipticCurve getSECP256k1();
 };

@@ -40,7 +40,7 @@ LongInt EllipticCurve::discriminant() const {
 
 // Compute the order of a point on the curve.
 // Порядок точки
-UINT EllipticCurve::order(const Point &point) const {
+UINT EllipticCurve:: order(const Point &point) const {
     if (p == 0)
         return 0;
     Point q(point);
@@ -82,18 +82,6 @@ UINT EllipticCurve::order(const Point &point) const {
  */
 
 bool EllipticCurve::contains(const Point &point) const {
-//    auto c1 = point.get_y() * point.get_y();
-//    auto c2 = point.get_x() * point.get_x() * point.get_x();
-//    auto c3 = a * point.get_x() * point.get_x();
-//    auto c4 = b * point.get_x();
-//    auto c5 = c2 + c3 + c4 + c;
-//    auto c6 = c1 - c5;
-//    auto s1 = c1.to_string();
-//    auto s2 = c2.to_string();
-//    auto s3 = c3.to_string();
-//    auto s4 = c4.to_string();
-//    auto s5 = c5.to_string();
-//    auto s6 = c6.to_string();
     return point.get_inf() || (
             point.get_y().fast_pow_mod(LongInt(LONG_INT_LEN, 2), p).abs() ==
             (point.get_x().fast_pow_mod(LongInt(LONG_INT_LEN, 3), p).abs() +
@@ -114,8 +102,8 @@ EllipticCurve EllipticCurve::getSECP256k1() {
  * Generate a keypair using the point P of order n on the given curve. The private key is a
  * positive integer d smaller than n, and the public key is Q = dP.
  */
-std::pair<UINT, Point> EllipticCurve::generate_keypair(const Point &point) {
-    UINT d = LongInt::get_random(LONG_INT_LEN, random) % order(point);
+std::pair<UINT, Point> EllipticCurve::generate_keypair(const Point &point, UINT curve_order) {
+    UINT d = LongInt::get_random(LONG_INT_LEN, random) % curve_order;
     Point Q = point * LongInt(LONG_INT_LEN, d);
     return {d, Q};
 }

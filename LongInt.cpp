@@ -126,7 +126,7 @@ UINT LongInt::get_bits_count() const {
 UINT LongInt::get_actual_bits() const {
     for (UINT i = 0; i < get_bits_count(); i++)
         if (get_bit(i))
-            return get_bits_count() - i;
+            return get_bits_count() - i + 1;
     return 0;
 }
 
@@ -429,10 +429,12 @@ bool LongInt::operator>(const LongInt &other) const {
 bool LongInt::operator>(UINT other) const {
     if (!sign)
         return false;
+    if (len == 0)
+        return false;
     for (UINT i = 0; i < len - 1; i++)
         if (get(i))
             return true;
-    return value[len - 1] > other;
+    return last_item() > other;
 }
 
 
@@ -469,6 +471,8 @@ bool LongInt::operator<(const LongInt &other) const {
 bool LongInt::operator<(UINT other) const {
     if (!sign)
         return other != 0 || *this != 0;
+    if (len == 0)
+        return other != 0;
     for (UINT i = 0; i < len - 1; i++)
         if (get(i))
             return false;
@@ -534,7 +538,8 @@ LongInt &LongInt::operator&=(const LongInt &other) {
 
 LongInt &LongInt::operator&=(UINT other) {
     FIX_SIZE_UINT
-    FOR_IND(i)value[i] = 0;
+    for (UINT i = 0; i < len - 1; i++)
+        value[i] = 0;
     value[LAST] &= other;
     return *this;
 }
@@ -579,9 +584,9 @@ LongInt LongInt::operator<<=(UINT other) {
     FOR_IND(i) {
         UINT ni = i + shift_b;
         if (ni < len) {
-            value[i] = value[ni] << shift_s;
+            value[i] = get(ni) << shift_s;
             if (ni != len - 1 && shift_s != 0)
-                value[i] |= value[ni + 1] >> (BITS_BASE - shift_s);
+                value[i] |= get(ni + 1) >> (BITS_BASE - shift_s);
         } else
             value[i] = 0;
     }
@@ -602,9 +607,9 @@ LongInt LongInt::operator>>=(UINT other) {
     FOR_IND_REVERSE(i) {
         UINT ni = i - shift_b;
         if (ni <= i) {
-            value[i] = value[ni] >> shift_s;
+            value[i] = get(ni) >> shift_s;
             if (ni != 0 && shift_s != 0)
-                value[i] |= value[ni - 1] << (BITS_BASE - shift_s);
+                value[i] |= get(ni - 1) << (BITS_BASE - shift_s);
         } else
             value[i] = 0;
     }
@@ -657,8 +662,8 @@ LongInt &LongInt::operator=(int other) {
     FIX_SIZE_UINT
     FOR_IND(i)value[i] = 0;
     for (UINT ps = sizeof(other) / (BITS_BASE); ps != 0; ps--)
-        value[ps] = ((unsigned) other >> (BITS_BASE * ps)) & ((UINT) -1);
-    value[LAST] = (unsigned) other & ((UINT) -1);
+        value[ps] = ((unsigned) other >> (BITS_BASE * ps)) & UINT_MAX;
+    value[LAST] = (unsigned) other & UINT_MAX;
     sign = other > 0;
     return *this;
 }

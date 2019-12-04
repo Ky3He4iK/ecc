@@ -80,16 +80,20 @@ Point Point::operator+(const Point &other) const {
 
 // Returns k * point computed using the double and point_add algorithm.
 Point Point::operator*(const LongInt &k) const {
+    if (get_inf() || k == 0)
+        return *this;
     ASSERT_ON_CURVE(*this)
-    Point res = Point(curve, LongInt(0), LongInt(0));
+    Point res = Point::inf_point(curve);
     if (k % curve->get_p() == UINT_0) {
         res.is_inf = true;
     } else if (k < UINT_0)
         return (-*this) * (-k);
     else {
         Point pow = Point(*this);
-        for (UINT i = 0; i < k.get_bits_count(); i++) {
-            if (k.get_bit(k.get_bits_count() - i - 1))
+        UINT actual_bits = k.get_actual_bits();
+        UINT shift = k.get_bits_count() - 1;
+        for (UINT i = 0; i < actual_bits; i++) {
+            if (k.get_bit(shift - i))
                 res = res + pow;
             pow = pow + pow;
         }
@@ -133,7 +137,7 @@ Point Point::operator-() const {
         return Point::inf_point(curve);
     if (curve) {
         Point res = {curve, x, (curve->get_p() - y) % curve->get_p()};
-        ASSERT_ON_CURVE(*this)
+        ASSERT_ON_CURVE(res)
         return res;
     } else {
         Point res = {curve, x, -y};
