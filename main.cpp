@@ -22,6 +22,15 @@ bool assert(const LongInt &left, const LongInt &right, const std::string &descri
     return true;
 }
 
+bool assert(const Point &left, const Point &right, const std::string &description) {
+    if (!(right == left)) {
+        cout << description << "\nExpected: " << right.to_string() << ";\tGot: " << left.to_string() << '\n';
+        return false;
+    }
+    cout << description << ": OK\n";
+    return true;
+}
+
 bool testLongInt() {
     bool r = true;
     UINT arra[] = {0, 1, 2};
@@ -194,7 +203,7 @@ bool testLongInt() {
     LongInt ll2(512,
                 "601878907032733300537224155868479379715586974160464875191130221445025214725227030143567584586666338417751100136667304419942937584554666204915760222789298");
     ASSERT_TEST(ll1.changeLen(2048) * ll2.changeLen(2048), LongInt(2048,
-                                                                       "3754618537210247802566121260460371099236390818479251663063529991850135472888709563703389675152639014575356816975895608352120156452719547448590356478393981151277454088836920431897360207456515841528723783171289952071265444118872554041416583699137970002861243351947894865714785111644651268408155338304253029766"),
+                                                                   "3754618537210247802566121260460371099236390818479251663063529991850135472888709563703389675152639014575356816975895608352120156452719547448590356478393981151277454088836920431897360207456515841528723783171289952071265444118872554041416583699137970002861243351947894865714785111644651268408155338304253029766"),
                 "*")
     ASSERT_TEST(ll1 / ll2, LongInt(512, "10"), "/")
     ASSERT_TEST(ll1 % ll2, LongInt(512,
@@ -206,10 +215,18 @@ bool testLongInt() {
     ASSERT_TEST(ll1 >> 0, ll1, ">> 0")
     ASSERT_TEST(ll1 << 0, ll1, "<< 0")
 
+    ASSERT_TEST(LongInt(32, "1024") / LongInt(64, "2"), LongInt(32, "512"), "combi-121")
+    ASSERT_TEST(LongInt(64, "1024") / LongInt(32, "2"), LongInt(32, "512"), "combi-211")
+    ASSERT_TEST(LongInt(32, "1024") / LongInt(32, "2"), LongInt(64, "512"), "combi-112")
+    ASSERT_BOOL(LongInt(32, "1024") / LongInt(64, "2") != LongInt(32, "513"))
+    ASSERT_BOOL(LongInt(32, "1024") / LongInt(32, "2") != LongInt(64, "513"))
+
     return r;
 }
 
 bool testCurvesNPoints() {
+    bool r = true;
+
     cout << "Curve and points:\n";
     EllipticCurve curve(LongInt(LONG_INT_LEN), LongInt(LONG_INT_LEN), LongInt(LONG_INT_LEN, 7),
                         LongInt(LONG_INT_LEN, 211), LongInt(LONG_INT_LEN, 1));
@@ -223,40 +240,24 @@ bool testCurvesNPoints() {
     Point Q = pair.second;
     cout << "Private: " << d << "\nPublic: " << Q.to_string() << '\n';
 
-    /*
-    print(", _____________________")
-# smaller elliptic curve
-    C = CurveOverFp(0, 0, 7, 211);
-    P = Point(150, 22);
-    print("\n\n", "smaller curve:", C, ", generator point: ", P);
+    //todo: attacks?
 
-    n = C.order(P)
-    print("n", n);
+    pair = curve.generate_keypair(point, n);
+    UINT d1 = pair.first;
+    Point Q1 = pair.second;
+    cout << "Second private: " << d << "\nPublic: " << Q.to_string() << '\n';
+    ASSERT_TEST(Q + (-Q1) + Q1, Q, "-+")
+//    ASSERT_TEST(Q / LongInt(BITS_BASE, d1) * LongInt(BITS_BASE, d1), Q, "/*")
 
-    (d, Q) = generate_keypair(C, P, n);  # limited value of d (max = n)
-    print("d", d, "Q", Q);
-
-    print("\ntest brute_force:");
-    crack_brute_force(C, P, n, Q, 150, 100);
-
-    print("\ntest BSGS:");
-    crack_baby_giant(C, P, n, Q);
-
-    print("\ntest pollard_rho:");
-    crack_rho(C, P, n, Q, 1);
-
-    (d1, Q1) = generate_keypair(C, P, n);
-    print("d1", d1, "Q1", Q1);
-
-    print("\ntest subtraction:", Q.__eq__(C.add(C.subtract(Q, Q1), Q1)));
-    print("\ntest divide:", Q.__eq__(C.mult(C.divide_point(Q, d1, n), d1)));
-
-    print("test get_Y (even Y):", C.getY(Q1.x, 0));
-    print("test get_point_by_X (odd Y):", C.get_point_by_X(Q1.x, 1));
-    print("test is on curve?:", C.contains(Point(Q1.x, C.getY(Q1.x, 0))), C.contains(C.get_point_by_X(Q1.x, 1)));
-    print("test is on curve (pow_mod)?:", C.contains(Point(Q1.x, C.getY(Q1.x, 0))),
-          C.contains(C.get_point_by_X(Q1.x, 1)));
-    print("_____________________")*/
+    //    print("\ntest subtraction:", Q.__eq__(C.add(C.subtract(Q, Q1), Q1)));
+    //    print("\ntest divide:", Q.__eq__(C.mult(C.divide_point(Q, d1, n), d1)));
+    //
+    //    print("test get_Y (even Y):", C.getY(Q1.x, 0));
+    //    print("test get_point_by_X (odd Y):", C.get_point_by_X(Q1.x, 1));
+    //    print("test is on curve?:", C.contains(Point(Q1.x, C.getY(Q1.x, 0))), C.contains(C.get_point_by_X(Q1.x, 1)));
+    //    print("test is on curve (pow_mod)?:", C.contains(Point(Q1.x, C.getY(Q1.x, 0))),
+    //          C.contains(C.get_point_by_X(Q1.x, 1)));
+    return r;
 }
 
 int main() {

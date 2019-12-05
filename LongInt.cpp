@@ -7,7 +7,7 @@
 
 #define FIX_SIZES(b) { \
     auto ol = (b).get_actual_bits(); \
-    if (ol > get_bits_count()) \
+    if (ol != UINT_MAX && ol > get_bits_count()) \
         (*this) = changeLen(ol); \
 }
 
@@ -126,7 +126,7 @@ UINT LongInt::get_bits_count() const {
 UINT LongInt::get_actual_bits() const {
     for (UINT i = 0; i < get_bits_count(); i++)
         if (get_bit(i))
-            return get_bits_count() - i + 1;
+            return get_bits_count() - i;
     return 0;
 }
 
@@ -237,7 +237,7 @@ LongInt LongInt::operator/(const LongInt &other) const {
         throw std::invalid_argument("Cannot divide by zero");
 
     LongInt otherAbs = other.abs();
-    auto bits = std::max(bits_num, get_actual_bits());
+    auto bits = std::max(bits_num, other.get_bits_count());
     LongInt remainder(bits);
     LongInt res(bits);
     // algorithm from wiki
@@ -282,7 +282,7 @@ LongInt &LongInt::operator/=(UINT other) {
 
 
 LongInt LongInt::operator*(const LongInt &other) const {
-    LongInt res(std::max(bits_num, get_actual_bits()));
+    LongInt res(std::max(get_bits_count(), other.get_bits_count()));
     FOR_IND(i) {
         res += ((other * get(i)) << (get_bits_count() - (i + 1) * BITS_BASE)).abs();
     }
@@ -378,10 +378,15 @@ bool LongInt::operator==(const LongInt &other) const {
             return false;
         return (other == 0) == (*this == 0);
     }
-    FOR_IND(i) {
-        if (get(i) != other[i])
-            return false;
-    }
+    if (len >= other.len)
+        for (UINT i = 0; i < other.len; i++) {
+            if (get(i + len - other.len) != other[i])
+                return false;
+        }
+    else
+        for (UINT i = 0; i < len; i++)
+            if (get(i) != other[i + other.len - len])
+                return false;
     return true;
 }
 
@@ -392,7 +397,7 @@ bool LongInt::operator==(UINT other) const {
     for (UINT i = 0; i < len - 1; i++)
         if (get(i) != 0)
             return false;
-    return value[len - 1] == other;
+    return last_item() == other;
 }
 
 

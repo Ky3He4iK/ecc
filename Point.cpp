@@ -7,7 +7,11 @@
 #include <stdexcept>
 #include <exception>
 
-#define ASSERT_ON_CURVE(point) ASSERT_(curve == nullptr || (point).curve->contains(point), "Point not on curve!");
+#define DO_ASSERT_ON_CURVE 0
+#define ASSERT_ON_CURVE(point) { \
+    if (DO_ASSERT_ON_CURVE) \
+        ASSERT_(curve == nullptr || (point).curve->contains(point), "Point not on curve!"); \
+}
 
 std::array<LongInt, 3> Point::extended_gcd(const LongInt &a, const LongInt &b) {
 #define GCD_STEP(v, old_v, tmp, q) { \
@@ -26,19 +30,9 @@ std::array<LongInt, 3> Point::extended_gcd(const LongInt &a, const LongInt &b) {
 //                  << '\n' << old_r.to_string() << ' ' << r.to_string() << "\n\n";
         LongInt q = old_r / r;
         LongInt tmp = r;
-
-        r = old_r - q * r;
-        old_r = tmp;
-        tmp = s;
-        s = old_s - q * s;
-        old_s = tmp;
-        tmp = t;
-        t = old_t - q * t;
-        old_t = tmp;
-
-//        GCD_STEP(r, old_r, tmp, q)
-//        GCD_STEP(s, old_s, tmp, q)
-//        GCD_STEP(t, old_t, tmp, q)
+        GCD_STEP(r, old_r, tmp, q)
+        GCD_STEP(s, old_s, tmp, q)
+        GCD_STEP(t, old_t, tmp, q)
     }
     return {old_r, old_s, old_t};
 }
@@ -91,12 +85,14 @@ Point Point::operator*(const LongInt &k) const {
     else {
         Point pow = Point(*this);
         UINT actual_bits = k.get_actual_bits();
-        UINT shift = k.get_bits_count() - 1;
-        for (UINT i = 0; i < actual_bits; i++) {
-            if (k.get_bit(shift - i))
+        UINT min = k.get_bits_count() - actual_bits;
+        for (UINT i = k.get_bits_count() - 1; i != 0 && i >= min; i--) {
+            if (k.get_bit(i))
                 res = res + pow;
             pow = pow + pow;
         }
+        if (k.get_bit(0))
+            res = res + pow;
     }
     ASSERT_ON_CURVE(res)
     return res;
@@ -169,4 +165,8 @@ const LongInt &Point::get_x() const {
 
 const LongInt &Point::get_y() const {
     return y;
+}
+
+Point Point::operator/(const LongInt &k) const {
+    return *this * inverse_mod(k, curve->get_p());
 }
