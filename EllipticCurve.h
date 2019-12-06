@@ -50,6 +50,10 @@ public:
         return exp;
     }
 
+    LongInt get_y(const LongInt &x, bool is_odd = false) const;
+
+    Point get_point_by_x(const LongInt &x, bool is_odd = false) const;
+
     std::string to_string() const;
 
     LongInt discriminant() const;

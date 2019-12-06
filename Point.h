@@ -57,6 +57,8 @@ public:
 
     Point operator-() const;
 
+    Point operator-(const Point &other) const;
+
     Point operator/(const LongInt &k) const;
 
     Point operator/(UINT k) const;

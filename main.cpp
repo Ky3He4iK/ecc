@@ -254,14 +254,16 @@ bool testCurvesNPoints() {
     ASSERT_TEST(c / 104 * 104, c, "/*")
     ASSERT_TEST(Q / d1 * d1, Q, "/*")
 
-    //    print("\ntest subtraction:", Q.__eq__(C.add(C.subtract(Q, Q1), Q1)));
-    //    print("\ntest divide:", Q.__eq__(C.mult(C.divide_point(Q, d1, n), d1)));
-    //
-    //    print("test get_Y (even Y):", C.getY(Q1.x, 0));
-    //    print("test get_point_by_X (odd Y):", C.get_point_by_X(Q1.x, 1));
-    //    print("test is on curve?:", C.contains(Point(Q1.x, C.getY(Q1.x, 0))), C.contains(C.get_point_by_X(Q1.x, 1)));
-    //    print("test is on curve (pow_mod)?:", C.contains(Point(Q1.x, C.getY(Q1.x, 0))),
-    //          C.contains(C.get_point_by_X(Q1.x, 1)));
+
+    ASSERT_TEST(curve.get_y(Q1.get_x(), Q1.get_y().last_item() & 1), Q1.get_y(), "get y by x")
+    ASSERT_TEST(curve.get_point_by_x(Q1.get_x(), Q1.get_y().last_item() & 1), Q1, "get point by x")
+    ASSERT_BOOL(curve.contains(curve.get_point_by_x(Q1.get_x(), 0)))
+    ASSERT_BOOL(curve.contains(curve.get_point_by_x(Q1.get_x(), 1)))
+
+    if (r)
+        cout << "Point&curve tests are passed!\n";
+    else
+        cout << "There are error in some tests\n";
     return r;
 }
 
@@ -274,7 +276,10 @@ int main() {
     cout << b.to_string(10) << '\t' << b.to_string(16) << '\n';
     cout << (b * 2).to_string(10) << '\n';
 
-    if (testCurvesNPoints() && testLongInt())
+    bool k = testCurvesNPoints();
+    if (!testLongInt())
+        k = false;
+    if (k)
         cout << "All tests have passed!\n";
     else
         cout << "ERROR!\n";

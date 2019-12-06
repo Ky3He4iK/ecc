@@ -232,6 +232,14 @@ Point Point::operator-() const {
     }
 }
 
+
+Point Point::operator-(const Point &other) const {
+    ASSERT_ON_CURVE(*this)
+    if (other.is_inf)
+        return *this;
+    return *this + (-other);
+}
+
 // Returns true if the given point lies on the elliptic curve
 bool Point::on_curve() const {
     return is_inf || curve == nullptr ||

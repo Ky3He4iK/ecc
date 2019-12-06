@@ -86,3 +86,19 @@ std::pair<UINT, Point> EllipticCurve::generate_keypair(const Point &point) {
     Point Q = point * LongInt(LONG_INT_LEN, d);
     return {d, Q};
 }
+
+
+// for each X there is two Y on curve, odd and even.
+LongInt EllipticCurve::get_y(const LongInt &x, bool is_odd) const {
+    LongInt _a = (x.fast_pow_mod(3, p) + 7) % p; // a = ( ( ( (x^3) mod n ) ax^2 + bx + c ) mod n )
+    LongInt y(_a.fast_pow_mod((p + 1) / 4, p)); // y = a^{(n+1)//4} mod n
+    if ((y.last_item() & 1) == is_odd)
+        return y;
+    return -y % p;  // invert Y
+}
+
+
+// for each X there is two Y on curve, odd and even.
+Point EllipticCurve::get_point_by_x(const LongInt &x, bool is_odd) const {
+    return Point(this, x % p, get_y(x, is_odd));
+}

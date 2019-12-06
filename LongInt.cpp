@@ -19,7 +19,10 @@
 LongInt::LongInt(UINT _bits_num, const UINT *init) : bits_num(_bits_num) {
 //        value = new UINT[ARR_SIZE];
     value.resize(ARR_SIZE);
-    FOR_IND(i)value[i] = init[i];
+    if (init)
+        FOR_IND(i) {
+            value[i] = init[i];
+        }
 }
 
 LongInt::LongInt(UINT _bits_num) : bits_num(_bits_num) {
@@ -701,6 +704,47 @@ LongInt LongInt::fast_pow_mod(const LongInt &y, const LongInt &z) const {
         if (y.get_bit(y.get_bits_count() - i - 1))
             res = (res * tmp) % z;
         tmp = (tmp * tmp) % z;
+    }
+    return res;
+}
+
+// fast pow mod (need to fast check is point on the curve on not)
+// Calculate (x ** y) % z efficiently.
+LongInt LongInt::fast_pow_mod(UINT y, const LongInt &z) const {
+    LongInt res(z.get_bits_count(), 1);
+    LongInt tmp(*this);
+    while (y) {
+        if (y & 1)
+            res = (res * tmp) % z;
+        tmp = (tmp * tmp) % z;
+        y >>= 1;
+    }
+    return res;
+}
+
+// fast pow mod (need to fast check is point on the curve on not)
+// Calculate (x ** y) % z efficiently.
+UINT LongInt::fast_pow_mod(const LongInt &y, UINT z) const {
+    UINT res = 1;
+    UINT tmp = last_item();
+    for (UINT i = 0; i < y.get_bits_count(); i++) {
+        if (y.get_bit(y.get_bits_count() - i - 1))
+            res = (res * tmp) % z;
+        tmp = (tmp * tmp) % z;
+    }
+    return res;
+}
+
+// fast pow mod (need to fast check is point on the curve on not)
+// Calculate (x ** y) % z efficiently.
+UINT LongInt::fast_pow_mod(UINT y, UINT z) const {
+    UINT res = 1;
+    UINT tmp = last_item();
+    while (y) {
+        if (y & 1)
+            res = (res * tmp) % z;
+        tmp = (tmp * tmp) % z;
+        y >>= 1;
     }
     return res;
 }
