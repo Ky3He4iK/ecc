@@ -13,12 +13,13 @@
         ASSERT_(curve == nullptr || (point).curve->contains(point), "Point not on curve!"); \
 }
 
-std::array<LongInt, 3> Point::extended_gcd(const LongInt &a, const LongInt &b) {
-#define GCD_STEP(v, old_v, tmp, q) { \
+#define _POINT_GCD_STEP(v, old_v, tmp, q) { \
     (tmp) = (v); \
     (v) = (old_v) - (q) * (v); \
     (old_v) = (tmp); \
 }
+
+std::array<LongInt, 3> Point::extended_gcd(const LongInt &a, const LongInt &b) {
     if (a == 0)
         return {b, LongInt(LONG_INT_LEN), LongInt(LongInt(LONG_INT_LEN, 1))};
 
@@ -30,9 +31,26 @@ std::array<LongInt, 3> Point::extended_gcd(const LongInt &a, const LongInt &b) {
 //                  << '\n' << old_r.to_string() << ' ' << r.to_string() << "\n\n";
         LongInt q = old_r / r;
         LongInt tmp = r;
-        GCD_STEP(r, old_r, tmp, q)
-        GCD_STEP(s, old_s, tmp, q)
-        GCD_STEP(t, old_t, tmp, q)
+        _POINT_GCD_STEP(r, old_r, tmp, q)
+        _POINT_GCD_STEP(s, old_s, tmp, q)
+        _POINT_GCD_STEP(t, old_t, tmp, q)
+    }
+    return {old_r, old_s, old_t};
+}
+
+std::array<UINT, 3> Point::extended_gcd(UINT a, UINT b) {
+    if (a == 0)
+        return {b, 0, 1};
+
+    UINT s(0), old_s(1);
+    UINT t(1), old_t(UINT_0);
+    UINT r(b), old_r(a);
+    while (r != UINT_0) {
+        UINT q = old_r / r;
+        UINT tmp;
+        _POINT_GCD_STEP(r, old_r, tmp, q)
+        _POINT_GCD_STEP(s, old_s, tmp, q)
+        _POINT_GCD_STEP(t, old_t, tmp, q)
     }
     return {old_r, old_s, old_t};
 }
@@ -98,6 +116,30 @@ Point Point::operator*(const LongInt &k) const {
     return res;
 }
 
+Point Point::operator*(UINT k) const {
+    if (get_inf() || k == 0)
+        return *this;
+    ASSERT_ON_CURVE(*this)
+    Point res = Point::inf_point(curve);
+    if (k % curve->get_p() == UINT_0) {
+        res.is_inf = true;
+    } else if (k < UINT_0)
+        return (-*this) * (-k);
+    else {
+        Point pow = Point(*this);
+        while (k != 0) {
+            if (k & 1)
+                res = res + pow;
+            pow = pow + pow;
+            k >>= 1;
+        }
+//        if (k & 1)
+//            res = res + pow;
+    }
+    ASSERT_ON_CURVE(res)
+    return res;
+}
+
 /*
  *  Returns the inverse of k modulo p.
     This function returns the only integer x such that (x * k) % p == 1.
@@ -124,6 +166,55 @@ LongInt Point::inverse_mod(const LongInt &k, const LongInt &p) {
     ASSERT_((k * gcd_x_y[1]) % p == 1, "(k * x[1]) % p != 1")
 
     return gcd_x_y[1] % p;
+}
+
+LongInt Point::inverse_mod(UINT k, const LongInt &p) {
+    if (k == UINT_0)
+        throw std::invalid_argument("Division by zero");
+    if (p > UINT_MAX)
+        return inverse_mod(LongInt(LONG_INT_LEN, k), p);
+    auto gcd_x_y = extended_gcd(k, p.last_item());
+    bool sign = gcd_x_y[1] > (UINT_MAX >> 1);
+    if (sign)
+        gcd_x_y[1] = -gcd_x_y[1];
+    LongInt res(LONG_INT_LEN, gcd_x_y[1] % p.last_item());
+    if (sign)
+        res = -res;
+    ASSERT_(gcd_x_y[0] == 1, "GCD is not 1")
+    ASSERT_((k * res) % p.last_item() == 1, "(k * x[1]) % p != 1")
+    return res;
+}
+
+LongInt Point::inverse_mod(const LongInt &k, UINT p) {
+    if (k == UINT_0)
+        throw std::invalid_argument("Division by zero");
+    if (k < UINT_0)
+        return p - inverse_mod(-k, p);
+    auto gcd_x_y = extended_gcd(k % p, p);
+    bool sign = gcd_x_y[1] > (UINT_MAX >> 1);
+    if (sign)
+        gcd_x_y[1] = -gcd_x_y[1];
+    LongInt res(LONG_INT_LEN, gcd_x_y[1] % p);
+    if (sign)
+        res = -res;
+    ASSERT_(gcd_x_y[0] == 1, "GCD is not 1")
+    ASSERT_((k * res) % p == 1, "(k * x[1]) % p != 1")
+    return res;
+}
+
+LongInt Point::inverse_mod(UINT k, UINT p) {
+    if (k == UINT_0)
+        throw std::invalid_argument("Division by zero");
+    auto gcd_x_y = extended_gcd(k, p);
+    bool sign = gcd_x_y[1] > (UINT_MAX >> 1);
+    if (sign)
+        gcd_x_y[1] = -gcd_x_y[1];
+    LongInt res(LONG_INT_LEN, gcd_x_y[1] % p);
+    if (sign)
+        res = -res;
+    ASSERT_(gcd_x_y[0] == 1, "GCD is not 1")
+    ASSERT_((k * res) % p == 1, "(k * x[1]) % p != 1")
+    return res;
 }
 
 // Returns -point
@@ -168,5 +259,9 @@ const LongInt &Point::get_y() const {
 }
 
 Point Point::operator/(const LongInt &k) const {
-    return *this * inverse_mod(k, curve->get_p());
+    return *this * inverse_mod(k, curve->get_order());
+}
+
+Point Point::operator/(UINT k) const {
+    return *this * inverse_mod(k, curve->get_order());
 }

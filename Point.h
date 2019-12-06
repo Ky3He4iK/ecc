@@ -20,7 +20,15 @@ private:
 
     static std::array<LongInt, 3> extended_gcd(const LongInt &a, const LongInt &b);
 
+    static std::array<UINT, 3> extended_gcd(UINT a, UINT b);
+
     static LongInt inverse_mod(const LongInt &k, const LongInt &p);
+
+    static LongInt inverse_mod(UINT k, const LongInt &p);
+
+    static LongInt inverse_mod(const LongInt &k, UINT p);
+
+    static LongInt inverse_mod(UINT k, UINT p);
 
 public:
     Point(const EllipticCurve *_curve, const LongInt &_x, const LongInt &_y);
@@ -45,9 +53,15 @@ public:
 
     Point operator*(const LongInt &k) const;
 
+    Point operator*(UINT k) const;
+
     Point operator-() const;
 
     Point operator/(const LongInt &k) const;
+
+    Point operator/(UINT k) const;
+
+    Point &operator=(const Point &other) = default;
 
     bool operator==(const Point &other) const;
 };

@@ -232,22 +232,27 @@ bool testCurvesNPoints() {
                         LongInt(LONG_INT_LEN, 211), LongInt(LONG_INT_LEN, 1));
     Point point(&curve, LongInt(LONG_INT_LEN, 150), LongInt(LONG_INT_LEN, 22));
     cout << "Smaller curve: " << curve.to_string() << "; generator point: " << point.to_string() << '\n';
-    UINT n = curve.order(point);
+    curve.set_curve_order(point);
+    UINT n = curve.get_order();
     cout << "n: " << n << '\n';
 
-    auto pair = curve.generate_keypair(point, n);
+    auto pair = curve.generate_keypair(point);
     UINT d = pair.first;
     Point Q = pair.second;
     cout << "Private: " << d << "\nPublic: " << Q.to_string() << '\n';
 
     //todo: attacks?
 
-    pair = curve.generate_keypair(point, n);
+    pair = curve.generate_keypair(point);
     UINT d1 = pair.first;
     Point Q1 = pair.second;
-    cout << "Second private: " << d << "\nPublic: " << Q.to_string() << '\n';
+    cout << "Second private: " << d1 << "\nSecond public: " << Q1.to_string() << '\n';
+    Point c(&curve, LongInt(LONG_INT_LEN, 51), LongInt(LONG_INT_LEN, 19));
     ASSERT_TEST(Q + (-Q1) + Q1, Q, "-+")
-//    ASSERT_TEST(Q / LongInt(BITS_BASE, d1) * LongInt(BITS_BASE, d1), Q, "/*")
+    ASSERT_TEST(c / 94 * 94, c, "/*")
+    c = Point(&curve, LongInt(LONG_INT_LEN, 22), LongInt(LONG_INT_LEN, 152));
+    ASSERT_TEST(c / 104 * 104, c, "/*")
+    ASSERT_TEST(Q / d1 * d1, Q, "/*")
 
     //    print("\ntest subtraction:", Q.__eq__(C.add(C.subtract(Q, Q1), Q1)));
     //    print("\ntest divide:", Q.__eq__(C.mult(C.divide_point(Q, d1, n), d1)));
@@ -269,9 +274,7 @@ int main() {
     cout << b.to_string(10) << '\t' << b.to_string(16) << '\n';
     cout << (b * 2).to_string(10) << '\n';
 
-    testCurvesNPoints();
-
-    if (testLongInt())
+    if (testCurvesNPoints() && testLongInt())
         cout << "All tests have passed!\n";
     else
         cout << "ERROR!\n";

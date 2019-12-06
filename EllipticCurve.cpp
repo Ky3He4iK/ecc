@@ -7,6 +7,22 @@
 EllipticCurve::EllipticCurve(const LongInt &_a, const LongInt &_b, const LongInt &_c, const LongInt &_p,
                              const LongInt &_exp) : a(_a), b(_b), c(_c), p(_p), exp(_exp), random() {}
 
+UINT EllipticCurve::set_curve_order(const Point &point) {
+    if (p == 0) {
+        curve_order = 0;
+        return curve_order;
+    }
+    Point q(point);
+    curve_order = 1;
+    //Add P to Q repeatedly until obtaining the identity (point at infinity).
+    while (!q.get_inf()) {
+        q = point + q;
+        ++curve_order;
+//        std::cerr << curve_order << ' ' << q.to_string() << '\n';
+    }
+    return curve_order;
+}
+
 std::string EllipticCurve::to_string() const {
     std::string res("y^2 = x^3");
     if (a != 0) {
@@ -40,46 +56,9 @@ LongInt EllipticCurve::discriminant() const {
 
 // Compute the order of a point on the curve.
 // Порядок точки
-UINT EllipticCurve:: order(const Point &point) const {
-    if (p == 0)
-        return 0;
-    Point q(point);
-    UINT order_p = 1;
-    //Add P to Q repeatedly until obtaining the identity (point at infinity).
-    while (!q.get_inf()) {
-        q = point + q;
-        ++order_p;
-        std::cerr << order_p << ' ' << q.to_string() << '\n';
-    }
-    return order_p;
+UINT EllipticCurve::get_order() const {
+    return curve_order;
 }
-
-/*
- #Add P to itself k times.
-    def mult(self, P, k):
-        if P.is_infinite():
-            return P
-        elif k == 0:
-            return Point.atInfinity()
-        elif k < 0:
-            return self.mult(self.invert(P), -k)
-        else:
-            #Convert k to a bitstring and use peasant multiplication to compute the product quickly.
-            b = bin(k)[2:]
-            return self.repeat_additions(P, b, 1)
-
-    #Add efficiently by repeatedly doubling the given point, and adding the result to a running
-    #total when, after the ith doubling, the ith digit in the bitstring b is a one.
-    def repeat_additions(self, P, b, n):
-        if b == '0':
-            return Point.atInfinity()
-        elif b == '1':
-            return P
-        elif b[-1] == '0':
-            return self.repeat_additions(self.double(P), b[:-1], n+1)
-        elif b[-1] == '1':
-            return self.add(P, self.repeat_additions(self.double(P), b[:-1], n+1))
- */
 
 bool EllipticCurve::contains(const Point &point) const {
     return point.get_inf() || (
@@ -102,7 +81,7 @@ EllipticCurve EllipticCurve::getSECP256k1() {
  * Generate a keypair using the point P of order n on the given curve. The private key is a
  * positive integer d smaller than n, and the public key is Q = dP.
  */
-std::pair<UINT, Point> EllipticCurve::generate_keypair(const Point &point, UINT curve_order) {
+std::pair<UINT, Point> EllipticCurve::generate_keypair(const Point &point) {
     UINT d = LongInt::get_random(LONG_INT_LEN, random) % curve_order;
     Point Q = point * LongInt(LONG_INT_LEN, d);
     return {d, Q};

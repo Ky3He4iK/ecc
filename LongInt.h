@@ -80,7 +80,7 @@ public:
         return sign;
     }
 
-    UINT get(UINT ind) const;
+    [[nodiscard]] UINT get(UINT ind) const;
 
     [[nodiscard]] LongInt fast_pow_mod(const LongInt &y, const LongInt &z) const;
 
@@ -124,7 +124,11 @@ public:
 
     LongInt &operator/=(UINT other);
 
-//    friend LongInt operator/(UINT first, const LongInt &other);
+    friend UINT operator/(UINT first, const LongInt &other) {
+        if (other > first)
+            return 0;
+        return first / other.last_item();
+    }
 
 
     LongInt operator*(const LongInt &other) const;
@@ -149,6 +153,13 @@ public:
 
     LongInt &operator%=(UINT other);
 
+    friend UINT operator%(UINT first, const LongInt &other) {
+        if (other > first)
+            return first;
+        if (other == first)
+            return 0;
+        return first - (first / other * other).last_item();
+    }
 
     bool operator==(const LongInt &other) const;
 

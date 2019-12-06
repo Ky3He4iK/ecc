@@ -20,9 +20,13 @@ class Point;
 class EllipticCurve {
 private:
     LongInt a, b, c, p, exp;
+    UINT curve_order;
     std::random_device random;
+
 public:
     EllipticCurve(const LongInt &_a, const LongInt &_b, const LongInt &_c, const LongInt &_p, const LongInt &_exp);
+
+    UINT set_curve_order(const Point &point);
 
     bool contains(const Point &point) const;
 
@@ -50,9 +54,9 @@ public:
 
     LongInt discriminant() const;
 
-    UINT order(const Point &point) const;
+    UINT get_order() const;
 
-    std::pair<UINT, Point> generate_keypair(const Point &point, UINT curve_order);
+    std::pair<UINT, Point> generate_keypair(const Point &point);
 
     static EllipticCurve getSECP256k1();
 };
