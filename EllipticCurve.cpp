@@ -102,3 +102,17 @@ LongInt EllipticCurve::get_y(const LongInt &x, bool is_odd) const {
 Point EllipticCurve::get_point_by_x(const LongInt &x, bool is_odd) const {
     return Point(this, x % p, get_y(x, is_odd));
 }
+
+UINT EllipticCurve::get_curve_order(const Point &base_point) const {
+    if (p == 0)
+        return 0;
+    Point q(base_point);
+    UINT order = 1;
+    //Add P to Q repeatedly until obtaining the identity (point at infinity).
+    while (!q.get_inf()) {
+        q = base_point + q;
+        ++order;
+//        std::cerr << curve_order << ' ' << q.to_string() << '\n';
+    }
+    return order;
+}

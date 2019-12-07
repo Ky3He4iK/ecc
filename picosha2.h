@@ -367,7 +367,7 @@ namespace picosha2 {
         std::ostringstream oss;
         output_hex(hashed, hashed + k_digest_size, oss);
 
-        return LongInt(256, oss.str(), 16);
+        return LongInt(256, oss.str(), 16); //todo: write directly to LongInt
     }
 
     inline void hash256_hex_string(const std::string &src, std::string &hex_str) {

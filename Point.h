@@ -18,6 +18,11 @@ private:
     bool is_inf = false;
     const EllipticCurve *curve;
 
+public:
+    Point(const EllipticCurve *_curve, const LongInt &_x, const LongInt &_y);
+
+    Point(const Point &other) = default;
+
     static std::array<LongInt, 3> extended_gcd(const LongInt &a, const LongInt &b);
 
     static std::array<UINT, 3> extended_gcd(UINT a, UINT b);
@@ -29,11 +34,6 @@ private:
     static LongInt inverse_mod(const LongInt &k, UINT p);
 
     static LongInt inverse_mod(UINT k, UINT p);
-
-public:
-    Point(const EllipticCurve *_curve, const LongInt &_x, const LongInt &_y);
-
-    Point(const Point &other) = default;
 
     bool get_inf() const {
         return is_inf;
