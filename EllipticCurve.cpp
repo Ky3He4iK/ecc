@@ -71,10 +71,10 @@ bool EllipticCurve::contains(const Point &point) const {
 }
 
 EllipticCurve EllipticCurve::getSECP256k1() {
-    return EllipticCurve(LongInt(LONG_INT_LEN), LongInt(LONG_INT_LEN), LongInt(LONG_INT_LEN, 7),
-                         LongInt(LONG_INT_LEN, "0xfffffffffffffffffffffffffffffffffffffffffffffffffffffffefffffc2f",
-                                 16),
-                         LongInt(LONG_INT_LEN, 1));
+    return EllipticCurve(LongInt(256), LongInt(256), LongInt(256, 7),
+                         LongInt(256,
+                                 "0xFFFFFFFF_FFFFFFFF_FFFFFFFF_FFFFFFFF_FFFFFFFF_FFFFFFFF_FFFFFFFE_FFFFFC2F", 16),
+                         LongInt(256, 1));
 }
 
 /*

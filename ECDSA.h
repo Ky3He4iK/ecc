@@ -12,20 +12,20 @@
 class ECDSA {
 private:
     const EllipticCurve *curve;
+    const Point base_point;
+    UINT curve_order;
+    std::pair<UINT, Point> keypair{0, Point::inf_point(nullptr)};
 
 public:
-    ECDSA(const EllipticCurve *_curve);
+    explicit ECDSA(const EllipticCurve *_curve, const Point &_base_point);
 
-    [[nodiscard]] std::pair<UINT, Point> generate_keypair(const Point &base_point) const;
+    [[nodiscard]] std::pair<LongInt, UINT> sign_msg(const std::string &message) const;
 
-    [[nodiscard]] std::pair<LongInt, UINT>
-    sign_msg(const std::string &message, const Point &base_point, UINT private_key, const Point &public_key) const;
-
-    [[nodiscard]] bool
-    verify_msg(const std::string &message, const Point &base_point, UINT private_key, const Point &public_key,
-               const std::pair<LongInt, UINT> &sign) const;
+    [[nodiscard]] bool verify_msg(const std::string &message, const std::pair<LongInt, UINT> &sign) const;
 
     static LongInt hash_truncated(const std::string &str, UINT num);
+
+    static ECDSA getSECP256k1();
 };
 
 #endif //ECC_ECDSA_H

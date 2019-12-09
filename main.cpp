@@ -3,6 +3,7 @@
 #include "LongInt.h"
 #include "EllipticCurve.h"
 #include "Point.h"
+#include "ECDSA.h"
 
 using namespace std;
 
@@ -268,14 +269,6 @@ bool testCurvesNPoints() {
 }
 
 int main() {
-    UINT arr[2] = {1, 2};
-    UINT arrl[4] = {0, 0, 1, 2};
-    LongInt a(64, 123);
-    cout << a.to_string(10) << '\t' << a.to_string(16) << '\n';
-    LongInt b(64, arr);
-    cout << b.to_string(10) << '\t' << b.to_string(16) << '\n';
-    cout << (b * 2).to_string(10) << '\n';
-
     bool k = testCurvesNPoints();
     if (!testLongInt())
         k = false;
@@ -284,12 +277,12 @@ int main() {
     else
         cout << "ERROR!\n";
 
-    LongInt bl(128, arrl);
-    LongInt c = bl * 2;
-    LongInt d = bl * c;
-    cout << '\n' << d.to_string(16) << '\n';
-    cout << d.to_string(10) << '\n';
-    cout << "36893488181778841608\n";
-    return 0;
+    ECDSA ecdsa = ECDSA::getSECP256k1();
+    std::string msg = "Some encrypted message";
+    cout << "msg: " << msg << '\n';
+    auto sign = ecdsa.sign_msg(msg);
+    cout << "Sign: (" << sign.first.to_string() << ";" << sign.second << ")\n";
+    cout << "Verify: " << ecdsa.verify_msg(msg, sign) << '\n';
 
+    return 0;
 }

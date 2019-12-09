@@ -91,6 +91,8 @@ public:
 
     [[nodiscard]] LongInt abs() const;
 
+    LongInt shift_left_no_overflow(UINT other) const;
+
     LongInt operator+(const LongInt &other) const;
 
     LongInt operator+(UINT other) const;

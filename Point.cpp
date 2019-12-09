@@ -57,8 +57,8 @@ std::array<UINT, 3> Point::extended_gcd(UINT a, UINT b) {
 
 Point::Point(const EllipticCurve *_curve, const LongInt &_x, const LongInt &_y) : curve(_curve), x(_x), y(_y) {
     if (curve) {
-        x = x % curve->get_p();
-        y = y % curve->get_p();
+        x %= curve->get_p();
+        y %= curve->get_p();
     }
 }
 
@@ -163,7 +163,7 @@ LongInt Point::inverse_mod(const LongInt &k, const LongInt &p) {
 
     auto gcd_x_y = extended_gcd(k, p);
     ASSERT_(gcd_x_y[0] == 1, "GCD is not 1")
-    ASSERT_((k * gcd_x_y[1]) % p == 1, "(k * x[1]) % p != 1")
+    ASSERT_((k.changeLen(k.get_bits_count() << 1) * gcd_x_y[1]) % p == 1, "(k * x[1]) % p != 1")
 
     return gcd_x_y[1] % p;
 }
