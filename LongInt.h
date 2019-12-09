@@ -52,7 +52,7 @@ public:
 
     LongInt(UINT bits_num, const UINT *init);
 
-    explicit LongInt(UINT bits_num);
+    explicit LongInt(UINT bits_num = 0);
 
     explicit LongInt(UINT bits_num, UINT init);
 

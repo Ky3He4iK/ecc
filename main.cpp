@@ -233,21 +233,20 @@ bool testCurvesNPoints() {
                         LongInt(LONG_INT_LEN, 211), LongInt(LONG_INT_LEN, 1));
     Point point(&curve, LongInt(LONG_INT_LEN, 150), LongInt(LONG_INT_LEN, 22));
     cout << "Smaller curve: " << curve.to_string() << "; generator point: " << point.to_string() << '\n';
-    curve.set_curve_order(point);
-    UINT n = curve.get_order();
-    cout << "n: " << n << '\n';
+    LongInt n = curve.set_curve_order(point);
+    cout << "n: " << n.to_string() << '\n';
 
     auto pair = curve.generate_keypair(point);
-    UINT d = pair.first;
+    LongInt d = pair.first;
     Point Q = pair.second;
-    cout << "Private: " << d << "\nPublic: " << Q.to_string() << '\n';
+    cout << "Private: " << d.to_string() << "\nPublic: " << Q.to_string() << '\n';
 
     //todo: attacks?
 
     pair = curve.generate_keypair(point);
-    UINT d1 = pair.first;
+    LongInt d1 = pair.first;
     Point Q1 = pair.second;
-    cout << "Second private: " << d1 << "\nSecond public: " << Q1.to_string() << '\n';
+    cout << "Second private: " << d1.to_string() << "\nSecond public: " << Q1.to_string() << '\n';
     Point c(&curve, LongInt(LONG_INT_LEN, 51), LongInt(LONG_INT_LEN, 19));
     ASSERT_TEST(Q + (-Q1) + Q1, Q, "-+")
     ASSERT_TEST(c / 94 * 94, c, "/*")
@@ -281,7 +280,7 @@ int main() {
     std::string msg = "Some encrypted message";
     cout << "msg: " << msg << '\n';
     auto sign = ecdsa.sign_msg(msg);
-    cout << "Sign: (" << sign.first.to_string() << ";" << sign.second << ")\n";
+    cout << "Sign: (" << sign.first.to_string() << ";" << sign.second.to_string() << ")\n";
     cout << "Verify: " << ecdsa.verify_msg(msg, sign) << '\n';
 
     return 0;

@@ -5,9 +5,15 @@
 #include "EllipticCurve.h"
 
 EllipticCurve::EllipticCurve(const LongInt &_a, const LongInt &_b, const LongInt &_c, const LongInt &_p,
-                             const LongInt &_exp) : a(_a), b(_b), c(_c), p(_p), exp(_exp), random() {}
+                             const LongInt &_exp) : a(_a), b(_b), c(_c), p(_p), exp(_exp), random() {
+    if (!is_valid())
+        std::cerr << "Warning: this curve is invalid!\n";
+}
 
-UINT EllipticCurve::set_curve_order(const Point &point) {
+// Compute the order of a point on the curve. Slow version. Todo: Schoof's algorithm
+// Порядок точки
+LongInt EllipticCurve::set_curve_order(const Point &point) {
+    base_point = new Point(point);
     if (p == 0) {
         curve_order = 0;
         return curve_order;
@@ -49,17 +55,6 @@ std::string EllipticCurve::to_string() const {
     return res;
 }
 
-// Compute the discriminant.
-LongInt EllipticCurve::discriminant() const {
-    return a * a * (b * b - (a * c) << 2) + (b << 2) * (9 * a * c - 2 * b * b) - 27 * c * c;
-}
-
-// Compute the order of a point on the curve.
-// Порядок точки
-UINT EllipticCurve::get_order() const {
-    return curve_order;
-}
-
 bool EllipticCurve::contains(const Point &point) const {
     return point.get_inf() || (
             point.get_y().fast_pow_mod(LongInt(LONG_INT_LEN, 2), p).abs() ==
@@ -81,9 +76,9 @@ EllipticCurve EllipticCurve::getSECP256k1() {
  * Generate a keypair using the point P of order n on the given curve. The private key is a
  * positive integer d smaller than n, and the public key is Q = dP.
  */
-std::pair<UINT, Point> EllipticCurve::generate_keypair(const Point &point) {
-    UINT d = LongInt::get_random(LONG_INT_LEN, random) % curve_order;
-    Point Q = point * LongInt(LONG_INT_LEN, d);
+std::pair<LongInt, Point> EllipticCurve::generate_keypair(const Point &point) {
+    LongInt d = LongInt::get_random(LONG_INT_LEN, random) % curve_order;
+    Point Q = point * d;
     return {d, Q};
 }
 
@@ -103,16 +98,35 @@ Point EllipticCurve::get_point_by_x(const LongInt &x, bool is_odd) const {
     return Point(this, x % p, get_y(x, is_odd));
 }
 
-UINT EllipticCurve::get_curve_order(const Point &base_point) const {
+LongInt EllipticCurve::get_curve_order(const Point &_base_point) const {
     if (p == 0)
-        return 0;
-    Point q(base_point);
-    UINT order = 1;
+        return LongInt();
+    Point q(*base_point);
+    LongInt order(LONG_INT_LEN, 1);
     //Add P to Q repeatedly until obtaining the identity (point at infinity).
     while (!q.get_inf()) {
-        q = base_point + q;
+        q = *base_point + q;
         ++order;
 //        std::cerr << curve_order << ' ' << q.to_string() << '\n';
     }
     return order;
+}
+
+LongInt EllipticCurve::fast_curve_order(const Point &_base_point) const {
+    if (*base_point == _base_point)
+        return curve_order;
+    return get_curve_order(_base_point);
+}
+
+void EllipticCurve::set_curve_order(const Point &_base_point, const LongInt &_curve_order) {
+    base_point = new Point(_base_point);
+    curve_order = _curve_order;
+}
+
+bool EllipticCurve::is_valid() const {
+    return (4 * a.fast_pow_mod(3, p) + 27 * b * b) % p != 0;
+}
+
+Point EllipticCurve::get_base_point() const {
+    return *base_point;
 }

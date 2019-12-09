@@ -12,8 +12,10 @@
 }
 
 #define FIX_SIZE_UINT { \
-    if (len == 0) \
+    if (len == 0) { \
         value.resize(1); \
+        len = 1; \
+    }\
 };
 
 #define PRE_FOR_DIFF_SIZES_THIS(other, i) \
@@ -797,6 +799,8 @@ LongInt LongInt::get_random(UINT bits_num, std::random_device &random) {
     LongInt res(bits_num);
     for (UINT i = 0; i < bits_num; i++)
         res.set_bit(i, random() & 1);
+    if (res == 0)
+        return get_random(bits_num, random);
     return res;
 }
 

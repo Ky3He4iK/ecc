@@ -9,21 +9,35 @@
 #include <random>
 #include <string>
 
+typedef LongInt ECDSA_private_key;
+
+struct ECDSA_public_key {
+    ECDSA_public_key();
+
+    ECDSA_public_key(const LongInt &_curve_a, const LongInt &_curve_b, const Point &_base_point,
+                     const LongInt &_curve_order, const Point &_random_point);
+
+    ECDSA_public_key &operator=(const ECDSA_public_key &other) = default;
+
+    LongInt curve_a;
+    LongInt curve_b;
+    Point base_point;
+    LongInt curve_order;
+    Point random_point;
+};
+
 class ECDSA {
 private:
     const EllipticCurve *curve;
-    const Point base_point;
-    UINT curve_order;
-    std::pair<UINT, Point> keypair{0, Point::inf_point(nullptr)};
+    ECDSA_private_key private_key;
+    ECDSA_public_key public_key;
 
 public:
     explicit ECDSA(const EllipticCurve *_curve, const Point &_base_point);
 
-    [[nodiscard]] std::pair<LongInt, UINT> sign_msg(const std::string &message) const;
+    [[nodiscard]] std::pair<LongInt, LongInt> sign_msg(const std::string &message) const;
 
-    [[nodiscard]] bool verify_msg(const std::string &message, const std::pair<LongInt, UINT> &sign) const;
-
-    static LongInt hash_truncated(const std::string &str, UINT num);
+    [[nodiscard]] bool verify_msg(const std::string &message, const std::pair<LongInt, LongInt> &sign) const;
 
     static ECDSA getSECP256k1();
 };

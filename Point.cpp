@@ -267,9 +267,11 @@ const LongInt &Point::get_y() const {
 }
 
 Point Point::operator/(const LongInt &k) const {
-    return *this * inverse_mod(k, curve->get_order());
+    return *this * inverse_mod(k, curve->get_curve_order(curve->get_base_point()));
 }
 
 Point Point::operator/(UINT k) const {
-    return *this * inverse_mod(k, curve->get_order());
+    return *this * inverse_mod(k, curve->get_curve_order(curve->get_base_point()));
 }
+
+Point::Point(): is_inf(true), curve(nullptr) {}

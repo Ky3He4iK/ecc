@@ -23,6 +23,8 @@ public:
 
     Point(const Point &other) = default;
 
+    Point();
+
     static std::array<LongInt, 3> extended_gcd(const LongInt &a, const LongInt &b);
 
     static std::array<UINT, 3> extended_gcd(UINT a, UINT b);

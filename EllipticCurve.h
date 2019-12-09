@@ -20,49 +20,54 @@ class Point;
 class EllipticCurve {
 private:
     LongInt a, b, c, p, exp;
-    UINT curve_order;
+    LongInt curve_order;
+    Point *base_point;
     std::random_device random;
 
 public:
     EllipticCurve(const LongInt &_a, const LongInt &_b, const LongInt &_c, const LongInt &_p, const LongInt &_exp);
 
-    UINT set_curve_order(const Point &point);
+    LongInt set_curve_order(const Point &point);
 
-    bool contains(const Point &point) const;
+    [[nodiscard]] bool contains(const Point &point) const;
 
-    const LongInt &get_p() const {
+    [[nodiscard]] const LongInt &get_p() const {
         return p;
     }
 
-    const LongInt &get_a() const {
+    [[nodiscard]] const LongInt &get_a() const {
         return a;
     }
 
-    const LongInt &get_b() const {
+    [[nodiscard]] const LongInt &get_b() const {
         return b;
     }
 
-    const LongInt &get_c() const {
+    [[nodiscard]] const LongInt &get_c() const {
         return c;
     }
 
-    const LongInt &get_exp() const {
+    [[nodiscard]] const LongInt &get_exp() const {
         return exp;
     }
 
-    LongInt get_y(const LongInt &x, bool is_odd = false) const;
+    [[nodiscard]] bool is_valid() const;
 
-    Point get_point_by_x(const LongInt &x, bool is_odd = false) const;
+    [[nodiscard]] LongInt get_y(const LongInt &x, bool is_odd = false) const;
 
-    std::string to_string() const;
+    [[nodiscard]] Point get_point_by_x(const LongInt &x, bool is_odd = false) const;
 
-    LongInt discriminant() const;
+    [[nodiscard]] std::string to_string() const;
 
-    UINT get_order() const;
+    [[nodiscard]] LongInt get_curve_order(const Point &base_point) const;
 
-    UINT get_curve_order(const Point &base_point) const;
+    [[nodiscard]] LongInt fast_curve_order(const Point &base_point) const;
 
-    std::pair<UINT, Point> generate_keypair(const Point &point);
+    void set_curve_order(const Point &base_point, const LongInt &order);
+
+    [[nodiscard]] Point get_base_point() const;
+
+    std::pair<LongInt, Point> generate_keypair(const Point &point);
 
     static EllipticCurve getSECP256k1();
 };
