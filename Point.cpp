@@ -6,6 +6,7 @@
 
 #include <stdexcept>
 #include <exception>
+#include <utility>
 
 #define DO_ASSERT_ON_CURVE 0
 #define ASSERT_ON_CURVE(point) { \
@@ -55,7 +56,8 @@ std::array<UINT, 3> Point::extended_gcd(UINT a, UINT b) {
     return {old_r, old_s, old_t};
 }
 
-Point::Point(const EllipticCurve *_curve, const LongInt &_x, const LongInt &_y) : curve(_curve), x(_x), y(_y) {
+Point::Point(std::shared_ptr<EllipticCurve> _curve, const LongInt &_x, const LongInt &_y) : curve(std::move(_curve)),
+                                                                                            x(_x), y(_y) {
     if (curve) {
         x %= curve->get_p();
         y %= curve->get_p();
@@ -145,7 +147,7 @@ Point Point::operator*(UINT k) const {
     This function returns the only integer x such that (x * k) % p == 1.
     k must be non-zero and p must be a prime.
  * */
-Point Point::inf_point(const EllipticCurve *curve) {
+Point Point::inf_point(const std::shared_ptr<EllipticCurve> &curve) {
     Point res(curve, LongInt(0), LongInt(0));
     res.is_inf = true;
     return res;
@@ -274,4 +276,14 @@ Point Point::operator/(UINT k) const {
     return *this * inverse_mod(k, curve->get_curve_order(curve->get_base_point()));
 }
 
-Point::Point(): is_inf(true), curve(nullptr) {}
+Point::Point() : is_inf(true), curve(nullptr) {}
+
+Point &Point::operator=(const Point &other) {
+    if (*this == other)
+        return *this;
+    x = other.x;
+    y = other.y;
+    is_inf = other.is_inf;
+    curve = other.curve;
+    return *this;
+}

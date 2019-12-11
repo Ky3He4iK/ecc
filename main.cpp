@@ -231,7 +231,7 @@ bool testCurvesNPoints() {
     cout << "Curve and points:\n";
     EllipticCurve curve(LongInt(LONG_INT_LEN), LongInt(LONG_INT_LEN), LongInt(LONG_INT_LEN, 7),
                         LongInt(LONG_INT_LEN, 211), LongInt(LONG_INT_LEN, 1));
-    Point point(&curve, LongInt(LONG_INT_LEN, 150), LongInt(LONG_INT_LEN, 22));
+    Point point(std::make_shared<EllipticCurve>(curve), LongInt(LONG_INT_LEN, 150), LongInt(LONG_INT_LEN, 22));
     cout << "Smaller curve: " << curve.to_string() << "; generator point: " << point.to_string() << '\n';
     LongInt n = curve.set_curve_order(point);
     cout << "n: " << n.to_string() << '\n';
@@ -247,10 +247,10 @@ bool testCurvesNPoints() {
     LongInt d1 = pair.first;
     Point Q1 = pair.second;
     cout << "Second private: " << d1.to_string() << "\nSecond public: " << Q1.to_string() << '\n';
-    Point c(&curve, LongInt(LONG_INT_LEN, 51), LongInt(LONG_INT_LEN, 19));
+    Point c(std::make_shared<EllipticCurve>(curve), LongInt(LONG_INT_LEN, 51), LongInt(LONG_INT_LEN, 19));
     ASSERT_TEST(Q + (-Q1) + Q1, Q, "-+")
     ASSERT_TEST(c / 94 * 94, c, "/*")
-    c = Point(&curve, LongInt(LONG_INT_LEN, 22), LongInt(LONG_INT_LEN, 152));
+    c = Point(std::make_shared<EllipticCurve>(curve), LongInt(LONG_INT_LEN, 22), LongInt(LONG_INT_LEN, 152));
     ASSERT_TEST(c / 104 * 104, c, "/*")
     ASSERT_TEST(Q / d1 * d1, Q, "/*")
 
@@ -277,6 +277,7 @@ int main() {
         cout << "ERROR!\n";
 
     ECDSA ecdsa = ECDSA::getSECP256k1();
+    std::cerr << ecdsa.get_curve().get_p().get_len() << '\n';
     std::string msg = "Some encrypted message";
     cout << "msg: " << msg << '\n';
     auto sign = ecdsa.sign_msg(msg);

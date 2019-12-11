@@ -6,6 +6,7 @@
 #define ECC_POINT_H
 
 #include <array>
+#include <memory>
 
 #include "EllipticCurve.h"
 #include "LongInt.h"
@@ -16,10 +17,10 @@ class Point {
 private:
     LongInt x, y;
     bool is_inf = false;
-    const EllipticCurve *curve;
+    std::shared_ptr<EllipticCurve> curve;
 
 public:
-    Point(const EllipticCurve *_curve, const LongInt &_x, const LongInt &_y);
+    Point(std::shared_ptr<EllipticCurve> _curve, const LongInt &_x, const LongInt &_y);
 
     Point(const Point &other) = default;
 
@@ -43,7 +44,7 @@ public:
 
     bool on_curve() const;
 
-    static Point inf_point(const EllipticCurve *curve);
+    static Point inf_point(const std::shared_ptr<EllipticCurve> &curve);
 
     const LongInt &get_x() const;
 
@@ -65,7 +66,7 @@ public:
 
     Point operator/(UINT k) const;
 
-    Point &operator=(const Point &other) = default;
+    Point &operator=(const Point &other);
 
     bool operator==(const Point &other) const;
 };

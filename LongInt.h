@@ -83,15 +83,18 @@ public:
     [[nodiscard]] UINT get(UINT ind) const;
 
     [[nodiscard]] LongInt fast_pow_mod(const LongInt &y, const LongInt &z) const;
+
     [[nodiscard]] LongInt fast_pow_mod(UINT y, const LongInt &z) const;
+
     [[nodiscard]] UINT fast_pow_mod(const LongInt &y, UINT z) const;
+
     [[nodiscard]] UINT fast_pow_mod(UINT y, UINT z) const;
 
-    static LongInt get_random(UINT bits_num, std::random_device &random);
+    static LongInt get_random(UINT bits_num);
 
     [[nodiscard]] LongInt abs() const;
 
-    LongInt shift_left_no_overflow(UINT other) const;
+    [[nodiscard]] LongInt shift_left_no_overflow(UINT other) const;
 
     LongInt operator+(const LongInt &other) const;
 

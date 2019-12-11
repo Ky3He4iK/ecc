@@ -3,12 +3,14 @@
 //
 
 #include "ECDSA.h"
+
+#include <utility>
 #include "picosha2.h"
 
-ECDSA::ECDSA(const EllipticCurve *_curve, const Point &_base_point) : curve(_curve) {
+ECDSA::ECDSA(std::shared_ptr<EllipticCurve> _curve, const Point &_base_point) : curve(std::move(
+        _curve)) {
     LongInt curve_order = curve->fast_curve_order(_base_point);
-    std::random_device random;
-    private_key = LongInt::get_random(LONG_INT_LEN, random) % curve_order;
+    private_key = LongInt::get_random(curve_order.get_bits_count()) % curve_order;
     public_key = ECDSA_public_key(
             curve->get_a(),
             curve->get_b(),
@@ -16,6 +18,7 @@ ECDSA::ECDSA(const EllipticCurve *_curve, const Point &_base_point) : curve(_cur
             curve_order,
             _base_point * private_key
     );
+    std::cerr << curve->get_p().get_len() << '\n';
 }
 
 // Create a digital signature for the string message using a given curve with a distinguished
@@ -25,10 +28,10 @@ ECDSA::sign_msg(const std::string &message) const {
     LongInt hash = picosha2::hash256_long_int(message) % public_key.curve_order;
     LongInt r(LONG_INT_LEN);
     LongInt s(LONG_INT_LEN);
-    std::random_device random;
+
     // Choose a randomly selected secret point kP then compute r and s.
     while (s == 0) {
-        UINT k = random();
+        LongInt k = LongInt::get_random(public_key.curve_order.get_bits_count());
         r = (public_key.base_point * k).get_x() % public_key.curve_order;
         if (r == 0)
             continue;
@@ -58,15 +61,17 @@ bool ECDSA::verify_msg(const std::string &message, const std::pair<LongInt, Long
 
 ECDSA ECDSA::getSECP256k1() {
     EllipticCurve _curve = EllipticCurve::getSECP256k1();
-    LongInt x(256, "79BE667E F9DCBBAC 55A06295 CE870B07 029BFCDB 2DCE28D9 59F2815B 16F81798", 16);
+    ECDSA res(std::make_shared<EllipticCurve>(_curve), _curve.get_base_point());
+    std::cerr << res.curve->get_p().get_len() << '\n';
+    return res;
+}
 
-    Point point = _curve.get_point_by_x(x, false);
-    _curve.set_curve_order(point,
-                           LongInt(256, "FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFE BAAEDCE6 AF48A03B BFD25E8C D0364141"));
-    ASSERT_(point.get_y() ==
-            LongInt(256, "483ADA77 26A3C465 5DA4FBFC 0E1108A8 FD17B448 A6855419 9C47D08F FB10D4B8", 16),
-            "Base point is wrong!");
-    return ECDSA(&_curve, point);
+EllipticCurve ECDSA::get_curve() const {
+    return *curve;
+}
+
+ECDSA_public_key ECDSA::get_public_key() const {
+    return public_key;
 }
 
 ECDSA_public_key::ECDSA_public_key() : curve_a(0), curve_b(0),

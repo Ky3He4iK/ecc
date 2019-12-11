@@ -15,7 +15,7 @@
     if (len == 0) { \
         value.resize(1); \
         len = 1; \
-    }\
+    } \
 };
 
 #define PRE_FOR_DIFF_SIZES_THIS(other, i) \
@@ -422,12 +422,13 @@ bool LongInt::operator==(const LongInt &other) const {
             return false;
         return (other == 0) == (*this == 0);
     }
-    PRE_FOR_DIFF_SIZES_THIS(other, i)if (value[i])
+    PRE_FOR_DIFF_SIZES_THIS(other, i)
+            if (value[i])
                 return false;
-    PRE_FOR_DIFF_SIZES_OTHER(other, i)if (other[i])
+    PRE_FOR_DIFF_SIZES_OTHER(other, i)
+            if (other[i])
                 return false;
-    FOR_DIFF_SIZES(other, i, j)
-        if (get(i) != other[j])
+    FOR_DIFF_SIZES(other, i, j)if (get(i) != other[j])
             return false;
     return true;
 }
@@ -463,11 +464,14 @@ bool LongInt::operator>(const LongInt &other) const {
     }
     if (!sign)
         return -(*this) < -other;
-    PRE_FOR_DIFF_SIZES_THIS(other, i)if (value[i])
+    PRE_FOR_DIFF_SIZES_THIS(other, i)
+            if (value[i])
                 return true;
-    PRE_FOR_DIFF_SIZES_OTHER(other, i)if (other[i])
+    PRE_FOR_DIFF_SIZES_OTHER(other, i)
+            if (other[i])
                 return false;
-    FOR_DIFF_SIZES(other, i, j)if (get(i) > other[j])
+    FOR_DIFF_SIZES(other, i, j)
+        if (get(i) > other[j])
             return true;
         else if (get(i) < other[j])
             return false;
@@ -507,13 +511,12 @@ bool LongInt::operator<(const LongInt &other) const {
     }
     if (!sign)
         return -(*this) > -other;
-    PRE_FOR_DIFF_SIZES_THIS(other, i)
-            if (value[i])
+    PRE_FOR_DIFF_SIZES_THIS(other, i)if (value[i])
                 return false;
-    PRE_FOR_DIFF_SIZES_OTHER(other, i)
-            if (other[i])
+    PRE_FOR_DIFF_SIZES_OTHER(other, i)if (other[i])
                 return true;
-    FOR_DIFF_SIZES(other, i, j)if (get(i) > other[j])
+    FOR_DIFF_SIZES(other, i, j)
+        if (get(i) > other[j])
             return false;
         else if (get(i) < other[j])
             return true;
@@ -795,12 +798,11 @@ UINT LongInt::fast_pow_mod(UINT y, UINT z) const {
     return res;
 }
 
-LongInt LongInt::get_random(UINT bits_num, std::random_device &random) {
+LongInt LongInt::get_random(UINT bits_num) {
+    static std::random_device random;
     LongInt res(bits_num);
     for (UINT i = 0; i < bits_num; i++)
         res.set_bit(i, random() & 1);
-    if (res == 0)
-        return get_random(bits_num, random);
     return res;
 }
 

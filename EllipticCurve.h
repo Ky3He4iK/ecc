@@ -17,12 +17,12 @@ class Point;
 // y**2 = (x**3 + a*x + b) % p
 // (4 * a**3 + 27 * b**2) % p != 0
 #define LONG_INT_LEN 64
+
 class EllipticCurve {
 private:
     LongInt a, b, c, p, exp;
     LongInt curve_order;
-    Point *base_point;
-    std::random_device random;
+    std::shared_ptr<Point> base_point;
 
 public:
     EllipticCurve(const LongInt &_a, const LongInt &_b, const LongInt &_c, const LongInt &_p, const LongInt &_exp);

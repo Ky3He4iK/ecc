@@ -28,18 +28,22 @@ struct ECDSA_public_key {
 
 class ECDSA {
 private:
-    const EllipticCurve *curve;
+    const std::shared_ptr<EllipticCurve> curve;
     ECDSA_private_key private_key;
     ECDSA_public_key public_key;
 
 public:
-    explicit ECDSA(const EllipticCurve *_curve, const Point &_base_point);
+    explicit ECDSA(std::shared_ptr<EllipticCurve> _curve, const Point &_base_point);
 
     [[nodiscard]] std::pair<LongInt, LongInt> sign_msg(const std::string &message) const;
 
     [[nodiscard]] bool verify_msg(const std::string &message, const std::pair<LongInt, LongInt> &sign) const;
 
     static ECDSA getSECP256k1();
+
+    ECDSA_public_key get_public_key() const;
+
+    EllipticCurve get_curve() const;
 };
 
 #endif //ECC_ECDSA_H
