@@ -58,7 +58,7 @@ public:
 
     LongInt(const LongInt &other) = default;
 
-    explicit LongInt(UINT bits_num, const std::string &str, int radix = 10);
+    explicit LongInt(const std::string &str, int radix = 10);
 
     [[nodiscard]] LongInt changeLen(UINT new_bits_num) const;
 

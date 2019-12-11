@@ -106,13 +106,11 @@ Point Point::operator*(const LongInt &k) const {
         Point pow = Point(*this);
         UINT actual_bits = k.get_actual_bits();
         UINT min = k.get_bits_count() - actual_bits;
-        for (UINT i = k.get_bits_count() - 1; i != 0 && i >= min; i--) {
+        for (UINT i = k.get_bits_count() - 1; i < k.get_bits_count() && i >= min; i--) {
             if (k.get_bit(i))
                 res = res + pow;
             pow = pow + pow;
         }
-        if (k.get_bit(0))
-            res = res + pow;
     }
     ASSERT_ON_CURVE(res)
     return res;
@@ -269,17 +267,17 @@ const LongInt &Point::get_y() const {
 }
 
 Point Point::operator/(const LongInt &k) const {
-    return *this * inverse_mod(k, curve->get_curve_order(curve->get_base_point()));
+    return *this * inverse_mod(k, curve->get_saved_curve_order());
 }
 
 Point Point::operator/(UINT k) const {
-    return *this * inverse_mod(k, curve->get_curve_order(curve->get_base_point()));
+    return *this * inverse_mod(k, curve->get_saved_curve_order());
 }
 
 Point::Point() : is_inf(true), curve(nullptr) {}
 
 Point &Point::operator=(const Point &other) {
-    if (*this == other)
+    if (this == &other)
         return *this;
     x = other.x;
     y = other.y;

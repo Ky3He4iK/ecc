@@ -60,9 +60,8 @@ LongInt::LongInt(UINT _bits_num, UINT init) : bits_num(_bits_num) {
 }
 
 
-LongInt::LongInt(UINT _bits_num, const std::string &str, int radix) : bits_num(_bits_num) {
+LongInt::LongInt(const std::string &str, int radix): bits_num(0) {
     sign = str[0] != '-';
-    value.resize(ARR_SIZE);
     for (auto &c: str) {
         int i = ctoi(c);
         if (i != -1 && i < radix)

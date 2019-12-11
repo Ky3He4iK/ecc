@@ -36,7 +36,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 #include <vector>
 #include <fstream>
 
-#include "LongInt.h"
+#include "../LongInt.h"
 
 namespace picosha2 {
     typedef uint32_t word_t;
@@ -367,7 +367,7 @@ namespace picosha2 {
         std::ostringstream oss;
         output_hex(hashed, hashed + k_digest_size, oss);
 
-        return LongInt(256, oss.str(), 16); //todo: write directly to LongInt
+        return LongInt(oss.str(), 16); //todo: write directly to LongInt
     }
 
     inline void hash256_hex_string(const std::string &src, std::string &hex_str) {

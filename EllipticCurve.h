@@ -16,16 +16,16 @@ class Point;
 // general Weierstrass cubic y^2 = x^3 + ax^2 + bx + c over any field
 // y**2 = (x**3 + a*x + b) % p
 // (4 * a**3 + 27 * b**2) % p != 0
-#define LONG_INT_LEN 64
+#define LONG_INT_LEN 32
 
 class EllipticCurve {
 private:
-    LongInt a, b, c, p, exp;
+    LongInt a, b, p;
     LongInt curve_order;
     std::shared_ptr<Point> base_point;
 
 public:
-    EllipticCurve(const LongInt &_a, const LongInt &_b, const LongInt &_c, const LongInt &_p, const LongInt &_exp);
+    EllipticCurve(const LongInt &_a, const LongInt &_b, const LongInt &_p);
 
     LongInt set_curve_order(const Point &point);
 
@@ -43,14 +43,6 @@ public:
         return b;
     }
 
-    [[nodiscard]] const LongInt &get_c() const {
-        return c;
-    }
-
-    [[nodiscard]] const LongInt &get_exp() const {
-        return exp;
-    }
-
     [[nodiscard]] bool is_valid() const;
 
     [[nodiscard]] LongInt get_y(const LongInt &x, bool is_odd = false) const;
@@ -60,6 +52,8 @@ public:
     [[nodiscard]] std::string to_string() const;
 
     [[nodiscard]] LongInt get_curve_order(const Point &base_point) const;
+
+    [[nodiscard]] LongInt get_saved_curve_order() const;
 
     [[nodiscard]] LongInt fast_curve_order(const Point &base_point) const;
 
