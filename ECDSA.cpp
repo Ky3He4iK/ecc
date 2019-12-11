@@ -11,7 +11,8 @@
 
 ECDSA::ECDSA(const std::shared_ptr<EllipticCurve> &curve, const Point &_base_point) {
     LongInt curve_order = curve->fast_curve_order(_base_point);
-    private_key = LongInt::get_random(curve_order.get_bits_count()) % curve_order;
+    curve_order.shrink();
+    private_key = LongInt::get_random(curve_order.get_len()) % curve_order;
     public_key = ECDSA_public_key(
             curve->get_a(),
             curve->get_b(),
@@ -27,12 +28,12 @@ ECDSA::ECDSA(const std::shared_ptr<EllipticCurve> &curve, const Point &_base_poi
 std::pair<LongInt, LongInt>
 ECDSA::sign_msg(const std::string &message) const {
     LongInt hash = picosha2::hash256_long_int(message) % public_key.curve_order;
-    LongInt r(LONG_INT_LEN);
-    LongInt s(LONG_INT_LEN);
+    LongInt r;
+    LongInt s;
 
     // Choose a randomly selected secret point kP then compute r and s.
     while (s == 0) {
-        LongInt k = LongInt::get_random(public_key.curve_order.get_bits_count());
+        LongInt k = LongInt::get_random(public_key.curve_order.get_len());
         r = (public_key.base_point * k).get_x() % public_key.curve_order;
         if (r == 0)
             continue;
@@ -89,8 +90,7 @@ ECDSA ECDSA::deserialize(const std::string &data) {
     return ECDSA(private_key, public_key);
 }
 
-ECDSA_public_key::ECDSA_public_key() : curve_a(0), curve_b(0),
-                                       base_point(Point::inf_point(nullptr)), curve_order(0),
+ECDSA_public_key::ECDSA_public_key() : curve_a(), curve_b(), base_point(Point::inf_point(nullptr)), curve_order(),
                                        random_point(Point::inf_point(nullptr)) {}
 
 ECDSA_public_key::ECDSA_public_key(const LongInt &_curve_a, const LongInt &_curve_b, const LongInt &_curve_p,

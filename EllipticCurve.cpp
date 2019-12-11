@@ -6,6 +6,9 @@
 
 EllipticCurve::EllipticCurve(const LongInt &_a, const LongInt &_b,
                              const LongInt &_p) : a(_a), b(_b), p(_p) {
+    a.shrink();
+    b.shrink();
+    p.shrink();
     if (is_valid())
         std::cerr << "Warning: this curve is invalid!\n";
 }
@@ -48,13 +51,13 @@ std::string EllipticCurve::to_string() const {
 
 bool EllipticCurve::contains(const Point &point) const {
     return point.get_inf() || (
-            point.get_y().fast_pow_mod(LongInt(4, 2), p).abs() ==
-            (point.get_x().fast_pow_mod(LongInt(4, 3), p).abs() +
+            point.get_y().fast_pow_mod(LongInt(2), p).abs() ==
+            (point.get_x().fast_pow_mod(LongInt(3), p).abs() +
              (point.get_x() * a).abs() + b.abs()) % p);
 }
 
 EllipticCurve EllipticCurve::getSECP256k1() {
-    EllipticCurve curve(LongInt(), LongInt(256, 7),
+    EllipticCurve curve(LongInt(), LongInt(7),
                         LongInt("0xFFFFFFFF_FFFFFFFF_FFFFFFFF_FFFFFFFF_FFFFFFFF_FFFFFFFF_FFFFFFFE_FFFFFC2F", 16));
     LongInt x("79BE667E F9DCBBAC 55A06295 CE870B07 029BFCDB 2DCE28D9 59F2815B 16F81798", 16);
     Point point = curve.get_point_by_x(x, false);
@@ -62,7 +65,7 @@ EllipticCurve EllipticCurve::getSECP256k1() {
                           LongInt("FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFE BAAEDCE6 AF48A03B BFD25E8C D0364141"));
     ASSERT_(point.get_y() ==
             LongInt("483ADA77 26A3C465 5DA4FBFC 0E1108A8 FD17B448 A6855419 9C47D08F FB10D4B8", 16),
-            "Base point is wrong!");
+            "Base point is wrong!")
     return curve;
 }
 
@@ -71,7 +74,7 @@ EllipticCurve EllipticCurve::getSECP256k1() {
  * positive integer d smaller than n, and the public key is Q = dP.
  */
 std::pair<LongInt, Point> EllipticCurve::generate_keypair(const Point &point) {
-    LongInt d = LongInt::get_random(LONG_INT_LEN) % curve_order;
+    LongInt d = LongInt::get_random(curve_order.get_len()) % curve_order;
     Point Q = point * d;
     return {d, Q};
 }
@@ -98,7 +101,7 @@ LongInt EllipticCurve::get_curve_order(const Point &_base_point) const {
     if (p == 0)
         return LongInt();
     Point q(_base_point);
-    LongInt order(LONG_INT_LEN, 1);
+    LongInt order(1);
     //Add P to Q repeatedly until obtaining the identity (point at infinity).
     while (!q.get_inf()) {
         q = _base_point + q;

@@ -22,12 +22,12 @@
 
 std::array<LongInt, 3> Point::extended_gcd(const LongInt &a, const LongInt &b) {
     if (a == 0)
-        return {b, LongInt(LONG_INT_LEN), LongInt(LongInt(LONG_INT_LEN, 1))};
+        return {b, LongInt(), LongInt(1)};
 
-    LongInt s(a.get_bits_count(), UINT_0), old_s(a.get_bits_count(), 1);
-    LongInt t(a.get_bits_count(), 1), old_t(a.get_bits_count(), UINT_0);
+    LongInt s, old_s(1);
+    LongInt t(1), old_t;
     LongInt r(b), old_r(a);
-    while (r != UINT_0) {
+    while (r != 0) {
 //        std::cerr << old_s.to_string() << ' ' << s.to_string() << '\n' << old_t.to_string() << ' ' << t.to_string()
 //                  << '\n' << old_r.to_string() << ' ' << r.to_string() << "\n\n";
         LongInt q = old_r / r;
@@ -62,6 +62,8 @@ Point::Point(std::shared_ptr<EllipticCurve> _curve, const LongInt &_x, const Lon
         x %= curve->get_p();
         y %= curve->get_p();
     }
+    x.shrink();
+    y.shrink();
 }
 
 
@@ -146,7 +148,7 @@ Point Point::operator*(UINT k) const {
     k must be non-zero and p must be a prime.
  * */
 Point Point::inf_point(const std::shared_ptr<EllipticCurve> &curve) {
-    Point res(curve, LongInt(0), LongInt(0));
+    Point res(curve, LongInt(), LongInt());
     res.is_inf = true;
     return res;
 }
@@ -172,12 +174,12 @@ LongInt Point::inverse_mod(UINT k, const LongInt &p) {
     if (k == UINT_0)
         throw std::invalid_argument("Division by zero");
     if (p > UINT_MAX)
-        return inverse_mod(LongInt(LONG_INT_LEN, k), p);
+        return inverse_mod(LongInt(k), p);
     auto gcd_x_y = extended_gcd(k, p.last_item());
     bool sign = gcd_x_y[1] > (UINT_MAX >> 1);
     if (sign)
         gcd_x_y[1] = -gcd_x_y[1];
-    LongInt res(LONG_INT_LEN, gcd_x_y[1] % p.last_item());
+    LongInt res(gcd_x_y[1] % p.last_item());
     if (sign)
         res = -res;
     ASSERT_(gcd_x_y[0] == 1, "GCD is not 1")
@@ -194,7 +196,7 @@ LongInt Point::inverse_mod(const LongInt &k, UINT p) {
     bool sign = gcd_x_y[1] > (UINT_MAX >> 1);
     if (sign)
         gcd_x_y[1] = -gcd_x_y[1];
-    LongInt res(LONG_INT_LEN, gcd_x_y[1] % p);
+    LongInt res(gcd_x_y[1] % p);
     if (sign)
         res = -res;
     ASSERT_(gcd_x_y[0] == 1, "GCD is not 1")
@@ -209,7 +211,7 @@ LongInt Point::inverse_mod(UINT k, UINT p) {
     bool sign = gcd_x_y[1] > (UINT_MAX >> 1);
     if (sign)
         gcd_x_y[1] = -gcd_x_y[1];
-    LongInt res(LONG_INT_LEN, gcd_x_y[1] % p);
+    LongInt res(gcd_x_y[1] % p);
     if (sign)
         res = -res;
     ASSERT_(gcd_x_y[0] == 1, "GCD is not 1")

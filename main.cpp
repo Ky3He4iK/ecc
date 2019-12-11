@@ -47,8 +47,7 @@ bool testLongInt() {
     cout << "Checkpoint 1\n";
     ASSERT_TEST((a ^ b), c, "^")
     ASSERT_TEST((a | b), c, "|")
-    ASSERT_TEST((a & b), LongInt(96, (UINT)
-            0), "&")
+    ASSERT_TEST((a & b), LongInt(), "&")
     ASSERT_BOOL(a < c)
     cout << "Checkpoint 2\n";
     ASSERT_BOOL(c > b)
@@ -59,7 +58,7 @@ bool testLongInt() {
     ASSERT_BOOL(a.to_string(10) == "4294967298")
     ASSERT_TEST(1 * a, a, "*")
     ASSERT_TEST(LongInt("1100", 2) / LongInt("100", 2), LongInt("3"), "/")
-    ASSERT_TEST(LongInt(32, 16) / LongInt(32, 2), LongInt(32, 8), "/")
+    ASSERT_TEST(LongInt(16) / LongInt(2), LongInt(8), "/")
 
     cout << "Random tests:\n";
     LongInt r1("13860852903647110680");
@@ -84,7 +83,7 @@ bool testLongInt() {
     ASSERT_TEST(s1 % s2, LongInt("6697774729068289662"), "%")
     ASSERT_TEST(s1 / s2, LongInt("1"), "/")
     ASSERT_TEST(s1 * 4 / s2, LongInt("7"), "*/")
-    ASSERT_TEST(LongInt(192, r1 % 45), LongInt("15").changeLen(192), "%")
+    ASSERT_TEST(LongInt(r1 % 45), LongInt("15").changeLen(192), "%")
     ASSERT_BOOL(r1 % 45 == 15)
 
     cout << "logic\n";
@@ -158,7 +157,7 @@ bool testLongInt() {
     ASSERT_TEST(l1 % l1, LongInt("0"), "%")
     ASSERT_TEST(l1 % l2, LongInt("257333454774842625920237308813574237994"), "%")
     ASSERT_TEST(l2 % l1, LongInt("80664189130459777991682472803529513370"), "%")
-    ASSERT_TEST(LongInt(256, l1 % 45), LongInt("24").changeLen(256), "%")
+    ASSERT_TEST(LongInt(l1 % 45), LongInt("24").changeLen(256), "%")
     ASSERT_TEST(l1 / 45, LongInt("5718521217218725020449717973634983066"), "/")
     ASSERT_TEST(l1 / l2, LongInt("0"), "/")
     ASSERT_TEST(l2 / l1, LongInt("1"), "/")
@@ -228,8 +227,8 @@ bool testCurvesNPoints() {
     bool r = true;
 
     cout << "Curve and points:\n";
-    EllipticCurve curve(LongInt(LONG_INT_LEN), LongInt(LONG_INT_LEN, 7), LongInt(LONG_INT_LEN, 211));
-    Point point(std::make_shared<EllipticCurve>(curve), LongInt(LONG_INT_LEN, 150), LongInt(LONG_INT_LEN, 22));
+    EllipticCurve curve(LongInt(), LongInt(7), LongInt(211));
+    Point point(std::make_shared<EllipticCurve>(curve), LongInt(150), LongInt(22));
     cout << "Smaller curve: " << curve.to_string() << "; generator point: " << point.to_string() << '\n';
     LongInt n = curve.set_curve_order(point);
     cout << "n: " << n.to_string() << '\n';
@@ -245,12 +244,12 @@ bool testCurvesNPoints() {
     LongInt d1 = pair.first;
     Point Q1 = pair.second;
     cout << "Second private: " << d1.to_string() << "\nSecond public: " << Q1.to_string() << '\n';
-    Point c(std::make_shared<EllipticCurve>(curve), LongInt(LONG_INT_LEN, 51), LongInt(LONG_INT_LEN, 19));
+    Point c(std::make_shared<EllipticCurve>(curve), LongInt(51), LongInt(19));
     ASSERT_TEST(Q + (-Q1) + Q1, Q, "-+")
     ASSERT_TEST(c / 94 * 94, c, "/*")
-    c = Point(std::make_shared<EllipticCurve>(curve), LongInt(LONG_INT_LEN, 22), LongInt(LONG_INT_LEN, 152));
+    c = Point(std::make_shared<EllipticCurve>(curve), LongInt(22), LongInt(152));
     ASSERT_TEST(c / 104 * 104, c, "/*")
-    c = Point(std::make_shared<EllipticCurve>(curve), LongInt(LONG_INT_LEN, 56), LongInt(LONG_INT_LEN, 156));
+    c = Point(std::make_shared<EllipticCurve>(curve), LongInt(56), LongInt(156));
     ASSERT_TEST(c / 185 * 185, c, "/*")
     ASSERT_TEST(Q / d1 * d1, Q, "/*")
 

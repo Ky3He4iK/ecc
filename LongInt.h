@@ -19,10 +19,9 @@ typedef uint32_t UINT; //32bit because add, sub and mult easier to write that wa
 
 
 #define BITS_BASE (sizeof(UINT) * (UINT)8)
-#define ARR_SIZE (UINT)(bits_num / BITS_BASE + ((bits_num % BITS_BASE == 0) ? 0 : 1))
 #define LAST (len - (UINT)1)
 #define FOR_IND(i) for (UINT (i) = 0; (i) < len; (i)++)
-#define FOR_IND_REVERSE(i) for (UINT (i) = LAST; (i) != ((UINT) -1); (i)--)
+#define FOR_IND_REVERSE(i) for (UINT (i) = LAST; (i) < len; (i)--)
 #define UINT_MAX ((UINT)-1)
 #define UINT_0 (UINT)0
 #define ASSERT_(condition, msg) { \
@@ -40,7 +39,7 @@ private:
     UINT bits_num;
     std::vector<UINT> value;
     // array that represents this number. Big-endian (?)
-    UINT len = ARR_SIZE;
+    UINT len;
     bool sign = true;  // true if positive
 
     static char itoc(int i);
@@ -50,11 +49,9 @@ private:
 public:
 //    const UINT ARR_SIZE = ARR_SIZE;
 
-    LongInt(UINT bits_num, const UINT *init);
+    LongInt(UINT init_arr_size, const UINT *init);
 
-    explicit LongInt(UINT bits_num = 0);
-
-    explicit LongInt(UINT bits_num, UINT init);
+    explicit LongInt(UINT init = 0);
 
     LongInt(const LongInt &other) = default;
 
@@ -90,11 +87,11 @@ public:
 
     [[nodiscard]] UINT fast_pow_mod(UINT y, UINT z) const;
 
-    static LongInt get_random(UINT bits_num);
+    void shrink();
+
+    static LongInt get_random(UINT arr_size);
 
     [[nodiscard]] LongInt abs() const;
-
-    [[nodiscard]] LongInt shift_left_no_overflow(UINT other) const;
 
     LongInt operator+(const LongInt &other) const;
 
