@@ -7,9 +7,21 @@
 
 #include <QWidget>
 
-class LongIntWidget: public QWidget {
+class LongIntWidget : public QWidget {
 Q_OBJECT
 
+public:
+    explicit LongIntWidget(const QString &label = "", QWidget *parent = Q_NULLPTR);
+
+    [[nodiscard]] QString getContents() const;
+
+    void setContents(const QString &new_content);
+
+    void setEnabled(bool enabled);
+
+signals:
+
+    void contentChanged();
 };
 
 

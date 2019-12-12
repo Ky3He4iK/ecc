@@ -27,8 +27,8 @@ ResultHolder::ResultHolder(QWidget *parent) {
 
     encodeButton = new QPushButton("Encode");
     decodeButton = new QPushButton("Decode");
-    layout->addWidget(encodeButton, 3, 1);
-    layout->addWidget(decodeButton, 3, 2);
+    layout->addWidget(encodeButton, 3, 0);
+    layout->addWidget(decodeButton, 3, 1);
 
     setLayout(layout);
 
@@ -59,6 +59,7 @@ void ResultHolder::calculationFinished(const QString &res) {
     switch (state) {
         case 1:
             cypherText->setPlainText(res);
+            cypherTextChangedSlot();
             break;
         case 2:
             clearText->setPlainText(res);

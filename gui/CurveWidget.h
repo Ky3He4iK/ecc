@@ -7,7 +7,7 @@
 
 #include <QWidget>
 
-class CurveWidget: public QWidget {
+class CurveWidget : public QWidget {
 Q_OBJECT
 
 };
