@@ -21,7 +21,8 @@ private:
 
     explicit LongInt(mpz_class init);
 
-    static std::string filtered_str(const std::string &str, int radix);
+    static char itoc(int i);
+    static int ctoi(char c);
 
 public:
     explicit LongInt(int init = 0);
@@ -31,6 +32,10 @@ public:
     explicit LongInt(const std::string &str, int radix = 10);
 
     [[nodiscard]] std::string to_string(int radix = 10) const;
+
+    [[nodiscard]] std::string to_bin_string() const;
+
+    int to_int() const;
 
     [[nodiscard]] size_t get_actual_bits() const;
 

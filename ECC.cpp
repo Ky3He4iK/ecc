@@ -4,6 +4,7 @@
 
 #include "ECC.h"
 #include "dependences/picosha2.h"
+#include "dependences/AES.h"
 
 ECC::ECC(const std::shared_ptr<EllipticCurve> &curve, const Point &_base_point) {
     parameters = Curve_parameters(*curve, _base_point);
@@ -92,8 +93,37 @@ ECC ECC::deserialize(const std::string &data) {
     auto ecc = nlohmann::json::parse(data);
     auto parametes = Curve_parameters::deserialize(ecc["parameters"]);
     auto public_key = Public_key(std::make_shared<EllipticCurve>(parametes.create_curve()),
-                            LONG_INT_FROM_JSON(ecc["public_key"]["x"]),
-                            LONG_INT_FROM_JSON(ecc["public_key"]["y"]));
+                                 LONG_INT_FROM_JSON(ecc["public_key"]["x"]),
+                                 LONG_INT_FROM_JSON(ecc["public_key"]["y"]));
     auto private_key = Private_key(ecc["private_key"].get<std::string>(), 16);
     return ECC(private_key, public_key, parametes);
+}
+
+std::string ECC::encode(std::string &msg) const {
+    if (shared_secret == 0) {
+        std::cerr << "Warning: shared secret is invalid!\n";
+        return "";
+    }
+    AES aes(256);
+    unsigned int len = 0;
+    std::string res((char *) aes.EncryptECB((unsigned char *) msg.c_str(), msg.length(),
+                                            (unsigned char *) shared_secret.to_bin_string().c_str(), len));
+    return res;
+}
+
+std::string ECC::decode(std::string &msg) const {
+    if (shared_secret == 0) {
+        std::cerr << "Warning: shared secret is invalid!\n";
+        return "";
+    }
+    AES aes(256);
+    unsigned int len = 0;
+    std::string res((char *) aes.DecryptECB((unsigned char *) msg.c_str(), msg.length(),
+                                            (unsigned char *) shared_secret.to_bin_string().c_str()));
+    return res;
+}
+
+Private_key ECC::set_shared_secret(const Public_key &another) {
+    shared_secret = (another * private_key).get_x();
+    return shared_secret;
 }

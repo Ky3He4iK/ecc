@@ -4,19 +4,70 @@
 
 #include "LongInt.h"
 
-#ifndef ELIPTIC_CURVES_CYPHER_LONGINT_CPP
-#define ELIPTIC_CURVES_CYPHER_LONGINT_CPP
-
 #include <utility>
 
 #define num_mpz_t num.get_mpz_t()
 
 LongInt::LongInt(int init) : num(init) {}
 
-LongInt::LongInt(const std::string &str, int radix) : num(filtered_str(str, radix), radix) {}
+LongInt::LongInt(const std::string &str, int radix) : num(0) {
+    for (auto &c: str) {
+        int i = ctoi(c);
+        if (i != -1 && i < radix)
+            *this = *this * radix + i;
+    }
+    if (str[0] == '-')
+        *this *= -1;
+}
+
+int LongInt::ctoi(char c) {
+    if (c <= '9' && c >= '0')
+        return c - '0';
+    if (c <= 'Z' && c >= 'A')
+        return c - 'A' + 10;
+    if (c <= 'z' && c >= 'a')
+        return c - 'a' + 10;
+    return -1;
+}
+
+
+char LongInt::itoc(int i) {
+    return (i < 10) ? i + '0' : i + 'A' - 10;
+}
+
 
 std::string LongInt::to_string(int radix) const {
-    return num.get_str(radix);
+    std::string res;
+    LongInt tmp(abs());
+    while (tmp != 0) {
+        res.push_back(itoc((tmp % radix).to_int()));
+        tmp /= radix;
+    }
+    if (res.empty())
+        res.push_back('0');
+    else if (*this < 0)
+        res.push_back('-');
+    reverse(res.begin(), res.end());
+    return res;
+}
+
+std::string LongInt::to_bin_string() const {
+    std::string res;
+    LongInt tmp(abs());
+    while (tmp != 0) {
+        res.push_back(tmp.to_int());
+        tmp >>= 8;
+    }
+    if (res.empty())
+        res.push_back('0');
+    else if (*this < 0)
+        res.push_back('-');
+    reverse(res.begin(), res.end());
+    return res;
+}
+
+int LongInt::to_int() const {
+    return mpz_get_si(num_mpz_t);
 }
 
 size_t LongInt::get_actual_bits() const {
@@ -363,17 +414,3 @@ LongInt &LongInt::operator^=(int other) {
     *this = *this ^ LongInt(other);
     return *this;
 }
-
-std::string LongInt::filtered_str(const std::string &str, int radix) {
-    std::string res;
-    for (auto &c: str) {
-        if ((c <= '9' && c >= '0' && c - '0' < radix) | (c <= 'Z' && c >= 'A' && c - 'A' + 10 < radix) |
-            (c <= 'z' && c >= 'a' && c - 'a' + 10 < radix))
-            res.push_back(c);
-    }
-
-    return res;
-}
-
-
-#endif

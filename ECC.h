@@ -21,6 +21,7 @@ private:
     Private_key private_key;
     Public_key public_key;
     Curve_parameters parameters;
+    Private_key shared_secret;
 
 public:
     explicit ECC(const std::shared_ptr<EllipticCurve> &curve, const Point &_base_point);
@@ -30,10 +31,19 @@ public:
     explicit ECC(const Curve_parameters &_parameters);
 
 
+    // ECDSA
     [[nodiscard]] Sign sign_msg(const std::string &message) const;
 
     static bool verify_msg(const std::string &message, const Sign &sign, const Public_key &public_key,
                            const Curve_parameters &parameters);
+
+    // ECDH
+    Private_key set_shared_secret(const Public_key &another);
+
+    // (De)cypher using AES
+    std::string encode(std::string &msg) const;
+
+    std::string decode(std::string &msg) const;
 
     static std::pair<Private_key, Public_key> create_keys(const Curve_parameters &parameters);
 

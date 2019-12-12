@@ -5,9 +5,6 @@
 
 #include "Point.h"
 
-//#ifndef ELIPTIC_CURVES_CYPHER_POINT_CPP
-//#define ELIPTIC_CURVES_CYPHER_POINT_CPP
-
 #include <stdexcept>
 
 #define DO_ASSERT_ON_CURVE 1
@@ -216,5 +213,3 @@ Point &Point::operator=(const Point &other) {
     curve = other.curve;
     return *this;
 }
-
-//#endif
