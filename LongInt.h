@@ -36,9 +36,8 @@ typedef uint32_t UINT; //32bit because add, sub and mult easier to write that wa
  */
 class LongInt {
 private:
-    UINT bits_num;
     std::vector<UINT> value;
-    // array that represents this number. Big-endian (?)
+    // array that represents this number. Little-endian (?)
     UINT len;
     bool sign = true;  // true if positive
 
@@ -51,13 +50,15 @@ public:
 
     LongInt(UINT init_arr_size, const UINT *init);
 
-    explicit LongInt(UINT init = 0);
+    LongInt();
+
+    explicit LongInt(UINT init);
 
     LongInt(const LongInt &other) = default;
 
     explicit LongInt(const std::string &str, int radix = 10);
 
-    [[nodiscard]] LongInt changeLen(UINT new_bits_num) const;
+    [[nodiscard]] LongInt changeLen(UINT new_len) const;
 
     [[nodiscard]] std::string to_string(UINT radix = 10, bool group = false) const;
 
@@ -163,7 +164,7 @@ public:
             return first;
         if (other == first)
             return 0;
-        return first - (first / other * other).last_item();
+        return first % other.last_item();
     }
 
     bool operator==(const LongInt &other) const;

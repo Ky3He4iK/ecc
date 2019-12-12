@@ -5,10 +5,12 @@
 #include "LongInt.h"
 #include <iostream>
 
+#define BITS_TO_LEN(bits) (bits / BITS_BASE + ((bits % BITS_BASE == 0) ? 0 : 1))
+
 #define FIX_SIZES(b) { \
     auto ol = (b).get_actual_bits(); \
     if (ol != UINT_MAX && ol > get_bits_count()) \
-        (*this) = changeLen(ol); \
+        (*this) = changeLen(BITS_TO_LEN(ol)); \
 }
 
 #define FIX_SIZE_UINT(other) { \
@@ -39,24 +41,24 @@
     for (UINT (t_it) = len - 1, (l_it) = (other).len - 1; (l_it) < (other).len && (l_it) >= start_ind; (l_it)--, (t_it)--)
 
 
-LongInt::LongInt(UINT init_arr_size, const UINT *init) : bits_num(init_arr_size * BITS_BASE) {
+LongInt::LongInt(UINT init_arr_size, const UINT *init) {
 //        value = new UINT[ARR_SIZE];
     value.resize(init_arr_size);
+    len = value.size();
     if (init)
         FOR_IND(i) {
             value[i] = init[i];
         }
-    len = value.size();
 }
 
-LongInt::LongInt(UINT init) : bits_num(BITS_BASE) {
-    value.resize(1);
-    value[LAST] = init;
-    len = value.size();
+LongInt::LongInt() : len(0) {}
+
+LongInt::LongInt(UINT init) : len(1) {
+    value.resize(1, init);
 }
 
 
-LongInt::LongInt(const std::string &str, int radix) : bits_num(0) {
+LongInt::LongInt(const std::string &str, int radix) {
     sign = str[0] != '-';
     len = 0;
     for (auto &c: str) {
@@ -66,16 +68,17 @@ LongInt::LongInt(const std::string &str, int radix) : bits_num(0) {
     }
 }
 
-LongInt LongInt::changeLen(UINT new_bits_num) const {
-    if (new_bits_num == get_bits_count())
+LongInt LongInt::changeLen(UINT new_len) const {
+    if (new_len == len)
         return *this;
-    LongInt res(new_bits_num / BITS_BASE + ((new_bits_num % BITS_BASE == 0) ? 0 : 1), nullptr);
-    UINT n_len = res.get_len();
-    for (UINT i = 0; i < std::min(n_len, len); i++)
-        if (n_len < len)
-            res[i] = value[i + len - n_len];
+    LongInt res;
+    res.value.resize(new_len);
+    res.len = new_len;
+    for (UINT i = 0; i < std::min(new_len, len); i++)
+        if (new_len < len)
+            res[i] = value[i + len - new_len];
         else
-            res[i + n_len - len] = get(i);
+            res[i + new_len - len] = get(i);
     res.sign = sign;
     return res;
 }
@@ -101,7 +104,7 @@ std::string LongInt::to_string(UINT radix, bool group) const {
     std::string res;
     LongInt tmp(*this);
     UINT l = 1;
-    while (tmp != UINT_0) {
+    while (tmp != 0) {
         res.push_back(itoc(tmp.abs() % radix));
         tmp /= (radix);
         if (group && l++ % 4 == 0)
@@ -127,8 +130,8 @@ UINT LongInt::last_item() const {
 
 bool LongInt::get_bit(UINT pos) const {
     if (len == 0)
-        return 0;
-    return (value[pos / BITS_BASE] >> ((BITS_BASE - (pos % BITS_BASE) - 1) % BITS_BASE)) & (UINT) 1;
+        return false;
+    return (get(pos / BITS_BASE) >> ((BITS_BASE - (pos % BITS_BASE) - 1) % BITS_BASE)) & (UINT) 1;
 }
 
 
@@ -190,6 +193,10 @@ LongInt &LongInt::operator+=(const LongInt &other) {
             value[i] = buf;
             buf >>= BITS_BASE;
         }
+    if (buf) {
+        *this = changeLen(len + 1);
+        value[0] = buf;
+    }
     return *this;
 }
 
@@ -201,6 +208,10 @@ LongInt &LongInt::operator+=(UINT other) {
         buf += value[i];
         value[i] = buf;
         buf >>= BITS_BASE;
+    }
+    if (buf) {
+        *this = changeLen(len + 1);
+        value[0] = buf;
     }
     return *this;
 }
@@ -240,13 +251,13 @@ LongInt &LongInt::operator-=(const LongInt &other) {
         buf = (buf >> BITS_BASE) & (UINT) 1;
     }
 
-    if (other.len < len) \
-
+    if (other.len < len)
         for (UINT i = len - other.len - 1; i < len - other.len; i--) {
             buf = (uint64_t) value[i] - buf;
             value[i] = buf;
             buf = (buf >> BITS_BASE) & (UINT) 1;
         }
+    if (buf) ASSERT_(0, "Buf is " + LongInt(buf).to_string() + " at -");
     return *this;
 }
 
@@ -262,12 +273,13 @@ LongInt &LongInt::operator-=(UINT other) {
         value[i] = buf;
         buf = (buf >> BITS_BASE) & (UINT) 1;
     }
+    if (buf) ASSERT_(0, "Buf is " + LongInt(buf).to_string() + " at -");
     return *this;
 }
 
 
 LongInt LongInt::operator/(const LongInt &other) const {
-    if (other == UINT_0)
+    if (other == 0)
         throw std::invalid_argument("Cannot divide by zero");
 
     LongInt otherAbs = other.abs();
@@ -347,7 +359,7 @@ LongInt &LongInt::operator*=(UINT other) {
         buf >>= BITS_BASE;
     }
     if (buf != 0) {
-        *this = changeLen(get_bits_count() + BITS_BASE);
+        *this = changeLen(len + 1);
         value[0] = buf;
     }
     return *this;
@@ -355,7 +367,7 @@ LongInt &LongInt::operator*=(UINT other) {
 
 
 LongInt LongInt::operator%(const LongInt &other) const {
-    if (other == UINT_0)
+    if (other == 0)
         return *this;
     if (*this == 0)
         return LongInt();
@@ -382,7 +394,7 @@ LongInt LongInt::operator%(const LongInt &other) const {
 
 
 UINT LongInt::operator%(UINT other) const {
-    if (other == UINT_0)
+    if (other == 0)
         return last_item();
     uint64_t buf = 0;
     FOR_IND(i)buf = ((buf << BITS_BASE) + get(i)) % other;
@@ -417,13 +429,12 @@ bool LongInt::operator==(const LongInt &other) const {
             return false;
         return (other == 0) == (*this == 0);
     }
-    PRE_FOR_DIFF_SIZES_THIS(other, i)
-            if (value[i])
+    PRE_FOR_DIFF_SIZES_THIS(other, i)if (value[i])
                 return false;
-    PRE_FOR_DIFF_SIZES_OTHER(other, i)
-            if (other[i])
+    PRE_FOR_DIFF_SIZES_OTHER(other, i)if (other[i])
                 return false;
-    FOR_DIFF_SIZES(other, i, j)if (get(i) != other[j])
+    FOR_DIFF_SIZES(other, i, j)
+        if (get(i) != other[j])
             return false;
     return true;
 }
@@ -459,11 +470,9 @@ bool LongInt::operator>(const LongInt &other) const {
     }
     if (!sign)
         return -(*this) < -other;
-    PRE_FOR_DIFF_SIZES_THIS(other, i)
-            if (value[i])
+    PRE_FOR_DIFF_SIZES_THIS(other, i)if (value[i])
                 return true;
-    PRE_FOR_DIFF_SIZES_OTHER(other, i)
-            if (other[i])
+    PRE_FOR_DIFF_SIZES_OTHER(other, i)if (other[i])
                 return false;
     FOR_DIFF_SIZES(other, i, j) {
         if (get(i) > other[j])
@@ -507,11 +516,9 @@ bool LongInt::operator<(const LongInt &other) const {
     }
     if (!sign)
         return -(*this) > -other;
-    PRE_FOR_DIFF_SIZES_THIS(other, i)
-            if (value[i])
+    PRE_FOR_DIFF_SIZES_THIS(other, i)if (value[i])
                 return false;
-    PRE_FOR_DIFF_SIZES_OTHER(other, i)
-            if (other[i])
+    PRE_FOR_DIFF_SIZES_OTHER(other, i)if (other[i])
                 return true;
     FOR_DIFF_SIZES(other, i, j) {
         if (get(i) > other[j])
@@ -638,7 +645,7 @@ LongInt LongInt::operator<<=(UINT other) {
     FIX_SIZE_UINT(other)
     UINT a_b = get_actual_bits() + other;
     if (a_b > get_bits_count())
-        *this = changeLen(a_b);
+        *this = changeLen(BITS_TO_LEN(a_b));
     UINT shift_b = other / BITS_BASE, shift_s = other % BITS_BASE;
     FOR_IND(i) {
         UINT ni = i + shift_b;
@@ -677,7 +684,7 @@ LongInt LongInt::operator>>=(UINT other) {
 
 
 LongInt LongInt::operator~() const {
-    LongInt res;
+    LongInt res(*this);
     FOR_IND(i)res[i] = ~get(i);
     return res;
 }
@@ -750,27 +757,29 @@ LongInt LongInt::operator-() const {
 // Calculate (x ** y) % z efficiently.
 LongInt LongInt::fast_pow_mod(const LongInt &y, const LongInt &z) const {
     LongInt res(1);
-    LongInt tmp(changeLen(get_bits_count() << 1));
+    LongInt tmp(*this);
     for (UINT i = 0; i < y.get_bits_count(); i++) {
         if (y.get_bit(y.get_bits_count() - i - 1))
             res = (res * tmp) % z;
         tmp = (tmp * tmp) % z;
     }
-    return res.changeLen(z.get_bits_count());
+    res.shrink();
+    return res;
 }
 
 // fast pow mod (need to fast check is point on the curve on not)
 // Calculate (x ** y) % z efficiently.
 LongInt LongInt::fast_pow_mod(UINT y, const LongInt &z) const {
     LongInt res(1);
-    LongInt tmp(changeLen(get_bits_count() << 1));
+    LongInt tmp(*this);
     while (y) {
         if (y & 1)
             res = (res * tmp) % z;
         tmp = (tmp * tmp) % z;
         y >>= 1;
     }
-    return res.changeLen(z.get_bits_count());
+    res.shrink();
+    return res;
 }
 
 // fast pow mod (need to fast check is point on the curve on not)
@@ -829,5 +838,4 @@ void LongInt::shrink() {
         value[i - shift] = value[i];
     len -= shift;
     value.resize(len);
-    bits_num = get_bits_count();
 }

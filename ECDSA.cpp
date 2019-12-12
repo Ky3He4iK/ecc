@@ -59,9 +59,8 @@ bool ECDSA::verify_msg(const std::string &message, const std::pair<LongInt, Long
 }
 
 ECDSA ECDSA::getSECP256k1() {
-    EllipticCurve _curve = EllipticCurve::getSECP256k1();
-    ECDSA res(std::make_shared<EllipticCurve>(_curve), _curve.get_base_point());
-    return res;
+    auto curve = std::make_shared<EllipticCurve>(EllipticCurve::getSECP256k1());
+    return ECDSA(curve, curve->get_base_point());
 }
 
 ECDSA_public_key ECDSA::get_public_key() const {
@@ -107,20 +106,20 @@ ECDSA_public_key ECDSA_public_key::deserialize(const std::string &data) {
 }
 
 ECDSA_public_key ECDSA_public_key::deserialize(const nlohmann::json &data) {
-    auto curve = EllipticCurve(LONG_INT_FROM_JSON(data["curve"]["a"]),
+    auto curve = std::make_shared<EllipticCurve>(EllipticCurve(LONG_INT_FROM_JSON(data["curve"]["a"]),
                                LONG_INT_FROM_JSON(data["curve"]["b"]),
-                               LONG_INT_FROM_JSON(data["curve"]["p"]));
-    auto base_point = Point(std::make_shared<EllipticCurve>(curve), LONG_INT_FROM_JSON(data["base_point"]["x"]),
+                               LONG_INT_FROM_JSON(data["curve"]["p"])));
+    auto base_point = Point(curve, LONG_INT_FROM_JSON(data["base_point"]["x"]),
                             LONG_INT_FROM_JSON(data["base_point"]["y"]));
-    auto random_point = Point(std::make_shared<EllipticCurve>(curve),
+    auto random_point = Point(curve,
                               LONG_INT_FROM_JSON(data["random_point"]["x"]),
                               LONG_INT_FROM_JSON(data["random_point"]["y"]));
     auto curve_order = LONG_INT_FROM_JSON(data["curve_order"]);
-    curve.set_curve_order(base_point, curve_order);
+    curve->set_curve_order(base_point, curve_order);
     return {
-            curve.get_a(),
-            curve.get_b(),
-            curve.get_p(),
+            curve->get_a(),
+            curve->get_b(),
+            curve->get_p(),
             base_point,
             curve_order,
             random_point

@@ -5,10 +5,9 @@
 #include "Point.h"
 
 #include <stdexcept>
-#include <exception>
 #include <utility>
 
-#define DO_ASSERT_ON_CURVE 0
+#define DO_ASSERT_ON_CURVE 1
 #define ASSERT_ON_CURVE(point) { \
     if (DO_ASSERT_ON_CURVE) \
         ASSERT_(curve == nullptr || (point).curve->contains(point), "Point not on curve!"); \
@@ -44,9 +43,9 @@ std::array<UINT, 3> Point::extended_gcd(UINT a, UINT b) {
         return {b, 0, 1};
 
     UINT s(0), old_s(1);
-    UINT t(1), old_t(UINT_0);
+    UINT t(1), old_t(0);
     UINT r(b), old_r(a);
-    while (r != UINT_0) {
+    while (r != 0) {
         UINT q = old_r / r;
         UINT tmp;
         _POINT_GCD_STEP(r, old_r, tmp, q)
@@ -56,8 +55,8 @@ std::array<UINT, 3> Point::extended_gcd(UINT a, UINT b) {
     return {old_r, old_s, old_t};
 }
 
-Point::Point(std::shared_ptr<EllipticCurve> _curve, const LongInt &_x, const LongInt &_y) : curve(std::move(_curve)),
-                                                                                            x(_x), y(_y) {
+Point::Point(const std::shared_ptr<EllipticCurve> &_curve, const LongInt &_x, const LongInt &_y) : curve(_curve),
+                                                                                                   x(_x), y(_y) {
     if (curve) {
         x %= curve->get_p();
         y %= curve->get_p();
@@ -76,16 +75,16 @@ Point Point::operator+(const Point &other) const {
     if (other.is_inf)
         return *this;
 
-    LongInt m(x);
+    LongInt m;
     if (x == other.x) {
         if (y != other.y)
             return inf_point(curve);
         if (y == 0)
             return inf_point(curve);
-        m = ((3 * x * x + curve->get_a() * x + curve->get_b()) * inverse_mod(y << 1, curve->get_p())) % curve->get_p();
+        m = ((3 * x * x + curve->get_a()) * inverse_mod(y << 1, curve->get_p())) % curve->get_p();
     } else
         m = ((other.y - y) * inverse_mod((other.x - x) % curve->get_p(), curve->get_p())) % curve->get_p();
-    LongInt xr = (m * m - x - other.x - curve->get_a()) % curve->get_p();
+    LongInt xr = (m * m - x - other.x) % curve->get_p();
 //    Point res(curve, xr, (curve->get_p() * 2 - y - m * (xr - x)) % curve->get_p());
     Point res(curve, xr, (m * (x - xr) - y) % curve->get_p());
 
@@ -100,14 +99,12 @@ Point Point::operator*(const LongInt &k) const {
         return *this;
     ASSERT_ON_CURVE(*this)
     Point res = Point::inf_point(curve);
-    if (k % curve->get_p() == UINT_0) {
-        res.is_inf = true;
-    } else if (k < UINT_0)
+    if (k < 0)
         return (-*this) * (-k);
     else {
         Point pow = Point(*this);
-        UINT actual_bits = k.get_actual_bits();
-        UINT min = k.get_bits_count() - actual_bits;
+
+        UINT min = k.get_bits_count() - k.get_actual_bits();
         for (UINT i = k.get_bits_count() - 1; i < k.get_bits_count() && i >= min; i--) {
             if (k.get_bit(i))
                 res = res + pow;
@@ -123,9 +120,9 @@ Point Point::operator*(UINT k) const {
         return *this;
     ASSERT_ON_CURVE(*this)
     Point res = Point::inf_point(curve);
-    if (k % curve->get_p() == UINT_0) {
+    if (k % curve->get_p() == 0) {
         res.is_inf = true;
-    } else if (k < UINT_0)
+    } else if (k < 0)
         return (-*this) * (-k);
     else {
         Point pow = Point(*this);
@@ -158,20 +155,20 @@ Point Point::inf_point(const std::shared_ptr<EllipticCurve> &curve) {
 //    This function returns the only integer x such that (x * k) % p == 1.
 //    k must be non-zero and p must be a prime
 LongInt Point::inverse_mod(const LongInt &k, const LongInt &p) {
-    if (k == UINT_0)
+    if (k == 0)
         throw std::invalid_argument("Division by zero");
-    if (k < UINT_0)
+    if (k < 0)
         return p - inverse_mod(-k, p);
 
     auto gcd_x_y = extended_gcd(k, p);
     ASSERT_(gcd_x_y[0] == 1, "GCD is not 1")
-    ASSERT_((k.changeLen(k.get_bits_count() << 1) * gcd_x_y[1]) % p == 1, "(k * x[1]) % p != 1")
+    ASSERT_((k * gcd_x_y[1]) % p == 1, "(k * x[1]) % p != 1")
 
     return gcd_x_y[1] % p;
 }
 
 LongInt Point::inverse_mod(UINT k, const LongInt &p) {
-    if (k == UINT_0)
+    if (k == 0)
         throw std::invalid_argument("Division by zero");
     if (p > UINT_MAX)
         return inverse_mod(LongInt(k), p);
@@ -179,18 +176,18 @@ LongInt Point::inverse_mod(UINT k, const LongInt &p) {
     bool sign = gcd_x_y[1] > (UINT_MAX >> 1);
     if (sign)
         gcd_x_y[1] = -gcd_x_y[1];
-    LongInt res(gcd_x_y[1] % p.last_item());
+    LongInt res(gcd_x_y[1] % p);
     if (sign)
         res = -res;
     ASSERT_(gcd_x_y[0] == 1, "GCD is not 1")
-    ASSERT_((k * res) % p.last_item() == 1, "(k * x[1]) % p != 1")
+    ASSERT_((k * res) % p == 1, "(k * x[1]) % p != 1")
     return res;
 }
 
 LongInt Point::inverse_mod(const LongInt &k, UINT p) {
-    if (k == UINT_0)
+    if (k == 0)
         throw std::invalid_argument("Division by zero");
-    if (k < UINT_0)
+    if (k < 0)
         return p - inverse_mod(-k, p);
     auto gcd_x_y = extended_gcd(k % p, p);
     bool sign = gcd_x_y[1] > (UINT_MAX >> 1);
@@ -205,7 +202,7 @@ LongInt Point::inverse_mod(const LongInt &k, UINT p) {
 }
 
 LongInt Point::inverse_mod(UINT k, UINT p) {
-    if (k == UINT_0)
+    if (k == 0)
         throw std::invalid_argument("Division by zero");
     auto gcd_x_y = extended_gcd(k, p);
     bool sign = gcd_x_y[1] > (UINT_MAX >> 1);
@@ -245,7 +242,7 @@ Point Point::operator-(const Point &other) const {
 // Returns true if the given point lies on the elliptic curve
 bool Point::on_curve() const {
     return is_inf || curve == nullptr ||
-           ((y * y - x * x * x - curve->get_a() * x - curve->get_b()) % curve->get_p() == UINT_0);
+           ((y * y - x * x * x - curve->get_a() * x - curve->get_b()) % curve->get_p() == 0);
 }
 
 std::string Point::to_string() const {

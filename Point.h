@@ -20,7 +20,7 @@ private:
     std::shared_ptr<EllipticCurve> curve;
 
 public:
-    Point(std::shared_ptr<EllipticCurve> _curve, const LongInt &_x, const LongInt &_y);
+    Point(const std::shared_ptr<EllipticCurve> &_curve, const LongInt &_x, const LongInt &_y);
 
     Point(const Point &other) = default;
 

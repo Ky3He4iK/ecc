@@ -9,7 +9,7 @@ EllipticCurve::EllipticCurve(const LongInt &_a, const LongInt &_b,
     a.shrink();
     b.shrink();
     p.shrink();
-    if (is_valid())
+    if (!is_valid())
         std::cerr << "Warning: this curve is invalid!\n";
 }
 
@@ -17,10 +17,6 @@ EllipticCurve::EllipticCurve(const LongInt &_a, const LongInt &_b,
 // Порядок точки
 LongInt EllipticCurve::set_curve_order(const Point &point) {
     base_point = std::make_shared<Point>(point);
-    if (p == 0) {
-        curve_order = 0;
-        return curve_order;
-    }
     Point q(point);
     curve_order = 1;
     //Add P to Q repeatedly until obtaining the identity (point at infinity).
@@ -62,7 +58,7 @@ EllipticCurve EllipticCurve::getSECP256k1() {
     LongInt x("79BE667E F9DCBBAC 55A06295 CE870B07 029BFCDB 2DCE28D9 59F2815B 16F81798", 16);
     Point point = curve.get_point_by_x(x, false);
     curve.set_curve_order(point,
-                          LongInt("FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFE BAAEDCE6 AF48A03B BFD25E8C D0364141"));
+                          LongInt("FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFE BAAEDCE6 AF48A03B BFD25E8C D0364141", 16));
     ASSERT_(point.get_y() ==
             LongInt("483ADA77 26A3C465 5DA4FBFC 0E1108A8 FD17B448 A6855419 9C47D08F FB10D4B8", 16),
             "Base point is wrong!")
@@ -86,7 +82,7 @@ LongInt EllipticCurve::get_y(const LongInt &x, bool is_odd) const {
     LongInt y(_a.fast_pow_mod((p + 1) / 4, p)); // y = a^{(n+1)//4} mod n
     if ((y.last_item() & 1) == is_odd)
         return y;
-    return -y % p;  // invert Y
+    return -y % p;  // invert Yint()
 }
 
 
