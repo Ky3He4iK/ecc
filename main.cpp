@@ -17,8 +17,8 @@ using namespace std;
 
 bool my_assert(const LongInt &left, const LongInt &right, const std::string &description) {
     if (right != left) {
-        cout << description << "\nExpected: " << right.to_string(16, true) << "\t(" << right.to_string()
-             << ")\n\t Got: " << left.to_string(16, true) << "\t(" << left.to_string() << ")\n\t\t  "
+        cout << description << "\nExpected: " << right.to_string(16) << "\t(" << right.to_string()
+             << ")\n\t Got: " << left.to_string(16) << "\t(" << left.to_string() << ")\n\t\t  "
              << right.to_string() << " != " << left.to_string() << '\n';
         return false;
     }
@@ -37,12 +37,9 @@ bool my_assert(const Point &left, const Point &right, const std::string &descrip
 
 bool testLongInt() {
     bool r = true;
-    UINT arra[] = {0, 1, 2};
-    UINT arrb[] = {0, 2, 4};
-    UINT arrc[] = {0, 3, 6};
-    LongInt a(3, arra);
-    LongInt b(3, arrb);
-    LongInt c(3, arrc);
+    LongInt a("100000002", 16);
+    LongInt b("200000004", 16);
+    LongInt c("300000006", 16);
     ASSERT_TEST(a * 2, b, "*2")
     ASSERT_TEST(a + a, b, "+")
     ASSERT_TEST(c - b, a, "-")
@@ -59,7 +56,7 @@ bool testLongInt() {
     ASSERT_TEST(LongInt("42_9496_7298_bjhgfccv", 10), a, "from str")
     cout << "Checkpoint 3\n";
     ASSERT_BOOL(a.to_string(10) == "4294967298")
-    ASSERT_TEST(1 * a, a, "*")
+    ASSERT_TEST(a * 1, a, "*")
     ASSERT_TEST(LongInt("1100", 2) / LongInt("100", 2), LongInt("3"), "/")
     ASSERT_TEST(LongInt(16) / LongInt(2), LongInt(8), "/")
 
@@ -67,22 +64,15 @@ bool testLongInt() {
     LongInt r1("13860852903647110680");
     LongInt r2("7163078174578821018");
 
-    ASSERT_BOOL(!r2.get_bit(14))
-    ASSERT_BOOL(r2.get_bit(59))
-    ASSERT_BOOL(r2.get_bit(62))
-    ASSERT_BOOL(!r2.get_bit(61))
-    ASSERT_BOOL(!r2.get_bit(131))
-
     cout << "Arithmetic\n";
-    ASSERT_TEST(r1 + 4294967295, LongInt("13860852907942077975"), "+")
     ASSERT_TEST(r1 + r2, LongInt("21023931078225931698"), "+")
-    ASSERT_TEST(1 + r1, LongInt("13860852903647110681"), "+")
+    ASSERT_TEST(r1 + 1, LongInt("13860852903647110681"), "+")
     ASSERT_TEST(r1 - r2, LongInt("6697774729068289662"), "-")
     ASSERT_TEST(r1 / 45, LongInt("308018953414380237"), "/")
     ASSERT_TEST(r1 * r2, LongInt("99286372915162096498107574836556272240"), "*")
     ASSERT_TEST(r1 * 47, LongInt("651460086471414201960"), "*")
-    LongInt s1 = r1.changeLen(3);
-    LongInt s2 = r2.changeLen(3);
+    LongInt s1 = r1;
+    LongInt s2 = r2;
     ASSERT_TEST(s1 % s2, LongInt("6697774729068289662"), "%")
     ASSERT_TEST(s1 / s2, LongInt("1"), "/")
     ASSERT_TEST(s1 * 4 / s2, LongInt("7"), "*/")
@@ -131,7 +121,6 @@ bool testLongInt() {
     r1 ^= r2;
     r1 <<= 1;
     r1 >>= 1;
-    ~r1;
 
     r1 = LongInt("13860852903647110680");
     r2 = LongInt("7163078174578821018");
@@ -142,17 +131,13 @@ bool testLongInt() {
 
     ASSERT_TEST(LongInt("26959946667150639794667015087019630673637144422540572481103610249215") + 1,
                 LongInt("26959946667150639794667015087019630673637144422540572481103610249216"), "+1")
-    ASSERT_TEST((LongInt("115792089237316195423570985008687907853269984665640564039457584007913129639935") + 1).changeLen(2),
-                LongInt("0"), "+1")
     ASSERT_TEST(LongInt("26959946667150639794667015087019630673637144422540572481103610249216") - 1,
                 LongInt("26959946667150639794667015087019630673637144422540572481103610249215"), "-1")
-    ASSERT_TEST(LongInt("115792089237316195423570985008687907853269984665640564039457584007913129639936").changeLen(4),
-                LongInt("0"), "of")
     ASSERT_TEST(
-            LongInt("115792089237316195423570985008687907853269984665640564039457584007913129639935") >> BITS_BASE,
+            LongInt("115792089237316195423570985008687907853269984665640564039457584007913129639935") >> 32,
             LongInt("26959946667150639794667015087019630673637144422540572481103610249215"), "+1")
     ASSERT_TEST(l1 + l2, LongInt("595331098680145029832157090430677989358"), "+")
-    ASSERT_TEST(1 + l1, LongInt("257333454774842625920237308813574237995"), "1+")
+    ASSERT_TEST(l1 + 1, LongInt("257333454774842625920237308813574237995"), "1+")
     ASSERT_TEST(l2 - l1, LongInt("80664189130459777991682472803529513370"), "-")
     ASSERT_TEST(l1 * l2, LongInt("86978101411908498471595237453121472878336237366277074434698761705205138123816"),
                 "*")
@@ -259,8 +244,8 @@ bool testCurvesNPoints() {
     ASSERT_TEST(Q / d1 * d1, Q, "/*")
 
 
-    ASSERT_TEST(curve_pointer->get_y(Q1.get_x(), Q1.get_y().last_item() & 1), Q1.get_y(), "get y by x")
-    ASSERT_TEST(curve_pointer->get_point_by_x(Q1.get_x(), Q1.get_y().last_item() & 1), Q1, "get point by x")
+    ASSERT_TEST(curve_pointer->get_y(Q1.get_x(), (Q1.get_y() & 1) == 1), Q1.get_y(), "get y by x")
+    ASSERT_TEST(curve_pointer->get_point_by_x(Q1.get_x(), (Q1.get_y() & 1) == 1), Q1, "get point by x")
     ASSERT_BOOL(curve_pointer->contains(curve_pointer->get_point_by_x(Q1.get_x(), 0)))
     ASSERT_BOOL(curve_pointer->contains(curve_pointer->get_point_by_x(Q1.get_x(), 1)))
 
@@ -287,5 +272,6 @@ int main() {
     cout << "Sign: (" << sign.first.to_string() << ";" << sign.second.to_string() << ")\n";
     cout << "Verify: " << ECDSA::verify_msg(msg, sign, ecdsa.get_public_key()) << '\n';
 
+    std::vector<bool> a(1);
     return 0;
 }

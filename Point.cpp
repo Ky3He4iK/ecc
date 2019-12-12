@@ -2,10 +2,13 @@
 // Created by ky3he4ik on 22/11/19.
 //
 
+
 #include "Point.h"
 
+//#ifndef ELIPTIC_CURVES_CYPHER_POINT_CPP
+//#define ELIPTIC_CURVES_CYPHER_POINT_CPP
+
 #include <stdexcept>
-#include <utility>
 
 #define DO_ASSERT_ON_CURVE 1
 #define ASSERT_ON_CURVE(point) { \
@@ -13,41 +16,23 @@
         ASSERT_(curve == nullptr || (point).curve->contains(point), "Point not on curve!"); \
 }
 
+
+std::array<LongInt, 3> Point::extended_gcd(const LongInt &a, const LongInt &b) {
+    if (a == 0)
+        return {b, LongInt(), LongInt(1)};
+
 #define _POINT_GCD_STEP(v, old_v, tmp, q) { \
     (tmp) = (v); \
     (v) = (old_v) - (q) * (v); \
     (old_v) = (tmp); \
 }
 
-std::array<LongInt, 3> Point::extended_gcd(const LongInt &a, const LongInt &b) {
-    if (a == 0)
-        return {b, LongInt(), LongInt(1)};
-
     LongInt s, old_s(1);
     LongInt t(1), old_t;
     LongInt r(b), old_r(a);
     while (r != 0) {
-//        std::cerr << old_s.to_string() << ' ' << s.to_string() << '\n' << old_t.to_string() << ' ' << t.to_string()
-//                  << '\n' << old_r.to_string() << ' ' << r.to_string() << "\n\n";
         LongInt q = old_r / r;
-        LongInt tmp = r;
-        _POINT_GCD_STEP(r, old_r, tmp, q)
-        _POINT_GCD_STEP(s, old_s, tmp, q)
-        _POINT_GCD_STEP(t, old_t, tmp, q)
-    }
-    return {old_r, old_s, old_t};
-}
-
-std::array<UINT, 3> Point::extended_gcd(UINT a, UINT b) {
-    if (a == 0)
-        return {b, 0, 1};
-
-    UINT s(0), old_s(1);
-    UINT t(1), old_t(0);
-    UINT r(b), old_r(a);
-    while (r != 0) {
-        UINT q = old_r / r;
-        UINT tmp;
+        LongInt tmp;
         _POINT_GCD_STEP(r, old_r, tmp, q)
         _POINT_GCD_STEP(s, old_s, tmp, q)
         _POINT_GCD_STEP(t, old_t, tmp, q)
@@ -61,8 +46,6 @@ Point::Point(const std::shared_ptr<EllipticCurve> &_curve, const LongInt &_x, co
         x %= curve->get_p();
         y %= curve->get_p();
     }
-    x.shrink();
-    y.shrink();
 }
 
 
@@ -81,7 +64,7 @@ Point Point::operator+(const Point &other) const {
             return inf_point(curve);
         if (y == 0)
             return inf_point(curve);
-        m = ((3 * x * x + curve->get_a()) * inverse_mod(y << 1, curve->get_p())) % curve->get_p();
+        m = ((x * 3 * x + curve->get_a()) * inverse_mod(y << 1, curve->get_p())) % curve->get_p();
     } else
         m = ((other.y - y) * inverse_mod((other.x - x) % curve->get_p(), curve->get_p())) % curve->get_p();
     LongInt xr = (m * m - x - other.x) % curve->get_p();
@@ -103,37 +86,35 @@ Point Point::operator*(const LongInt &k) const {
         return (-*this) * (-k);
     else {
         Point pow = Point(*this);
-
-        UINT min = k.get_bits_count() - k.get_actual_bits();
-        for (UINT i = k.get_bits_count() - 1; i < k.get_bits_count() && i >= min; i--) {
-            if (k.get_bit(i))
+        LongInt tmp(k);
+        while (tmp != 0) {
+            if ((tmp & 1) == 1)
                 res = res + pow;
             pow = pow + pow;
+            tmp >>= 1;
         }
     }
     ASSERT_ON_CURVE(res)
     return res;
 }
 
-Point Point::operator*(UINT k) const {
+// Returns k * point computed using the double and point_add algorithm.
+Point Point::operator*(int k) const {
     if (get_inf() || k == 0)
         return *this;
     ASSERT_ON_CURVE(*this)
     Point res = Point::inf_point(curve);
-    if (k % curve->get_p() == 0) {
-        res.is_inf = true;
-    } else if (k < 0)
+    if (k < 0)
         return (-*this) * (-k);
     else {
         Point pow = Point(*this);
-        while (k != 0) {
-            if (k & 1)
+        LongInt tmp(k);
+        while (tmp != 0) {
+            if ((tmp & 1) == 1)
                 res = res + pow;
             pow = pow + pow;
-            k >>= 1;
+            tmp >>= 1;
         }
-//        if (k & 1)
-//            res = res + pow;
     }
     ASSERT_ON_CURVE(res)
     return res;
@@ -165,55 +146,6 @@ LongInt Point::inverse_mod(const LongInt &k, const LongInt &p) {
     ASSERT_((k * gcd_x_y[1]) % p == 1, "(k * x[1]) % p != 1")
 
     return gcd_x_y[1] % p;
-}
-
-LongInt Point::inverse_mod(UINT k, const LongInt &p) {
-    if (k == 0)
-        throw std::invalid_argument("Division by zero");
-    if (p > UINT_MAX)
-        return inverse_mod(LongInt(k), p);
-    auto gcd_x_y = extended_gcd(k, p.last_item());
-    bool sign = gcd_x_y[1] > (UINT_MAX >> 1);
-    if (sign)
-        gcd_x_y[1] = -gcd_x_y[1];
-    LongInt res(gcd_x_y[1] % p);
-    if (sign)
-        res = -res;
-    ASSERT_(gcd_x_y[0] == 1, "GCD is not 1")
-    ASSERT_((k * res) % p == 1, "(k * x[1]) % p != 1")
-    return res;
-}
-
-LongInt Point::inverse_mod(const LongInt &k, UINT p) {
-    if (k == 0)
-        throw std::invalid_argument("Division by zero");
-    if (k < 0)
-        return p - inverse_mod(-k, p);
-    auto gcd_x_y = extended_gcd(k % p, p);
-    bool sign = gcd_x_y[1] > (UINT_MAX >> 1);
-    if (sign)
-        gcd_x_y[1] = -gcd_x_y[1];
-    LongInt res(gcd_x_y[1] % p);
-    if (sign)
-        res = -res;
-    ASSERT_(gcd_x_y[0] == 1, "GCD is not 1")
-    ASSERT_((k * res) % p == 1, "(k * x[1]) % p != 1")
-    return res;
-}
-
-LongInt Point::inverse_mod(UINT k, UINT p) {
-    if (k == 0)
-        throw std::invalid_argument("Division by zero");
-    auto gcd_x_y = extended_gcd(k, p);
-    bool sign = gcd_x_y[1] > (UINT_MAX >> 1);
-    if (sign)
-        gcd_x_y[1] = -gcd_x_y[1];
-    LongInt res(gcd_x_y[1] % p);
-    if (sign)
-        res = -res;
-    ASSERT_(gcd_x_y[0] == 1, "GCD is not 1")
-    ASSERT_((k * res) % p == 1, "(k * x[1]) % p != 1")
-    return res;
 }
 
 // Returns -point
@@ -266,11 +198,11 @@ const LongInt &Point::get_y() const {
 }
 
 Point Point::operator/(const LongInt &k) const {
-    return *this * inverse_mod(k, curve->get_saved_curve_order());
+    return *this *inverse_mod(LongInt(k), curve->get_saved_curve_order());
 }
 
-Point Point::operator/(UINT k) const {
-    return *this * inverse_mod(k, curve->get_saved_curve_order());
+Point Point::operator/(int k) const {
+    return *this * inverse_mod(LongInt(k), curve->get_saved_curve_order());
 }
 
 Point::Point() : is_inf(true), curve(nullptr) {}
@@ -284,3 +216,5 @@ Point &Point::operator=(const Point &other) {
     curve = other.curve;
     return *this;
 }
+
+//#endif

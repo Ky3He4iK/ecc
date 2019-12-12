@@ -65,5 +65,6 @@ public:
     static EllipticCurve getSECP256k1();
 };
 
+//#include "Point.cpp"
 
 #endif //ECC_ELLIPTICCURVE_H

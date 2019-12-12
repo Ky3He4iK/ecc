@@ -11,8 +11,7 @@
 
 ECDSA::ECDSA(const std::shared_ptr<EllipticCurve> &curve, const Point &_base_point) {
     LongInt curve_order = curve->fast_curve_order(_base_point);
-    curve_order.shrink();
-    private_key = LongInt::get_random(curve_order.get_len()) % curve_order;
+    private_key = LongInt::get_random(curve_order.get_actual_bits()) % curve_order;
     public_key = ECDSA_public_key(
             curve->get_a(),
             curve->get_b(),
@@ -33,7 +32,7 @@ ECDSA::sign_msg(const std::string &message) const {
 
     // Choose a randomly selected secret point kP then compute r and s.
     while (s == 0) {
-        LongInt k = LongInt::get_random(public_key.curve_order.get_len());
+        LongInt k = LongInt::get_random(public_key.curve_order.get_actual_bits());
         r = (public_key.base_point * k).get_x() % public_key.curve_order;
         if (r == 0)
             continue;

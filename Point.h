@@ -28,15 +28,11 @@ public:
 
     static std::array<LongInt, 3> extended_gcd(const LongInt &a, const LongInt &b);
 
-    static std::array<UINT, 3> extended_gcd(UINT a, UINT b);
+    static std::array<int, 3> extended_gcd(int a, int b);
 
     static LongInt inverse_mod(const LongInt &k, const LongInt &p);
 
-    static LongInt inverse_mod(UINT k, const LongInt &p);
-
-    static LongInt inverse_mod(const LongInt &k, UINT p);
-
-    static LongInt inverse_mod(UINT k, UINT p);
+    static LongInt inverse_mod(int k, const LongInt &p);
 
     bool get_inf() const {
         return is_inf;
@@ -56,7 +52,7 @@ public:
 
     Point operator*(const LongInt &k) const;
 
-    Point operator*(UINT k) const;
+    Point operator*(int k) const;
 
     Point operator-() const;
 
@@ -64,12 +60,11 @@ public:
 
     Point operator/(const LongInt &k) const;
 
-    Point operator/(UINT k) const;
+    Point operator/(int k) const;
 
     Point &operator=(const Point &other);
 
     bool operator==(const Point &other) const;
 };
-
 
 #endif //ECC_POINT_H
