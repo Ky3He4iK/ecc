@@ -44,9 +44,9 @@ std::string EllipticCurve::to_string() const {
 
 bool EllipticCurve::contains(const Point &point) const {
     return point.get_inf() || (
-                                      point.get_y().pow_and_mod(LongInt(2), p).abs() ==
-                                      (point.get_x().pow_and_mod(LongInt(3), p).abs() +
-                                       (point.get_x() * a).abs() + b.abs()) % p);
+            point.get_y().pow_and_mod(LongInt(2), p).abs() ==
+            (point.get_x().pow_and_mod(LongInt(3), p).abs() +
+             (point.get_x() * a).abs() + b.abs()) % p);
 }
 
 EllipticCurve EllipticCurve::getSECP256k1() {
@@ -67,7 +67,9 @@ EllipticCurve EllipticCurve::getSECP256k1() {
  * positive integer d smaller than n, and the public key is Q = dP.
  */
 std::pair<LongInt, Point> EllipticCurve::generate_keypair(const Point &point) {
-    LongInt d = LongInt::get_random(curve_order.get_actual_bits()) % curve_order;
+    LongInt d;
+    while (d == 0 || d >= curve_order)
+        d = LongInt::get_random(curve_order.get_actual_bits()) % curve_order;
     Point Q = point * d;
     return {d, Q};
 }
