@@ -78,14 +78,11 @@ bool ECC::verify_msg(const std::string &message, const Sign &sign, const Public_
 }
 
 std::string ECC::serialize() const {
-    nlohmann::json res = {
-            {"public_key",  {
-                                    {"x", public_key.get_x().to_string(16)},
-                                    {"y", public_key.get_y().to_string(16)}
-                            }},
-            {"private_key", private_key.to_string(16)},
-            {"parameters",  parameters.to_json()}
-    };
+    nlohmann::json res;
+    res["public_key"]["x"] = public_key.get_x().to_string(16);
+    res["public_key"]["y"] = public_key.get_y().to_string(16);
+    res["private_key"] = private_key.to_string(16);
+    res["parameters"] = parameters.to_json();
     return res.dump(4);
 }
 

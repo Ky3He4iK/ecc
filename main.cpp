@@ -87,13 +87,27 @@ int main() {
     else
         cout << "ERROR!\n";
 
-    ECC ecc = ECC(Curve_parameters::curve_secp256k1());
-    std::string msg = "Some encrypted message";
+    ECC Bob = ECC(Curve_parameters::curve_secp256k1());
+    ECC Alice = ECC(Bob.get_parameters());
+    std::string msg = "Some encrypted message sent from Bob to Alice";
     cout << "msg: " << msg << '\n';
-    auto sign = ecc.sign_msg(msg);
+
+    auto sharedAlice = Alice.set_shared_secret(Bob.get_public_key());
+    auto sharedBob = Bob.set_shared_secret(Alice.get_public_key());
+    bool r = true;
+    ASSERT_TEST(sharedAlice, sharedBob, "Shared key match")
+    cout << "Shared: " << sharedAlice.to_string(16) << '\n';
+    auto encrypted = Bob.encode(msg);
+    cout << "Encrypted by Bob msg: " << encrypted << '\n';
+    auto sign = Bob.sign_msg(msg);
     cout << "Sign: (" << sign.first.to_string() << ";" << sign.second.to_string() << ")\n";
-    cout << "Verify: " << ECC::verify_msg(msg, sign, ecc.get_public_key(), ecc.get_parameters()) << '\n';
-    cout << "ECC data: " << ecc.serialize() << '\n';
-    std::vector<bool> a(1);
+
+    auto decrypted = Alice.decode(encrypted);
+    cout << "Decrypted by Alice: " << decrypted << '\n';
+    cout << "Verify: "
+         << (ECC::verify_msg(decrypted, sign, Bob.get_public_key(), Bob.get_parameters()) ? "Passed" : "Failed")
+         << '\n';
+    cout << "Bob data: " << Bob.serialize() << '\n';
+    cout << "Alice data: " << Alice.serialize() << '\n';
     return 0;
 }
