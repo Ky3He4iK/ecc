@@ -40,7 +40,7 @@ KeysHolder::KeysHolder(QWidget *) {
     connect(save_keypair, &QPushButton::pressed, this, &KeysHolder::saveKeypairSlot);
     connect(load_other_public_key, &QPushButton::pressed, this, &KeysHolder::loadOtherKeySlot);
 
-    connect(private_key, &LongIntWidget::contentChanged, this, &KeysHolder::privateKeyChangedSlot);
+    connect(private_key, &LongIntWidget::contentChangedSignal, this, &KeysHolder::privateKeyChangedSlot);
 
     generateKeypairSlot();
 }
