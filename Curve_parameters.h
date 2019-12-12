@@ -18,13 +18,15 @@ struct Curve_parameters {
     Curve_parameters(const LongInt &_curve_a, const LongInt &_curve_b, const LongInt &_curve_p,
                      const Point &_base_point, const LongInt &_curve_order);
 
+    Curve_parameters(const EllipticCurve &_curve, const Point &_base_point);
+
     Curve_parameters &operator=(const Curve_parameters &other) = default;
 
     [[nodiscard]] std::string serialize() const;
 
     [[nodiscard]] nlohmann::json to_json() const;
 
-    EllipticCurve create_curve() const;
+    [[nodiscard]] EllipticCurve create_curve() const;
 
     static Curve_parameters deserialize(const std::string &data);
 

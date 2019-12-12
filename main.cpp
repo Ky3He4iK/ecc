@@ -3,7 +3,7 @@
 #include "LongInt.h"
 #include "EllipticCurve.h"
 #include "Point.h"
-#include "ECDSA.h"
+#include "ECC.h"
 
 using namespace std;
 
@@ -82,20 +82,18 @@ bool testCurvesNPoints() {
 
 int main() {
     bool k = testCurvesNPoints();
-    if (!testLongInt())
-        k = false;
     if (k)
         cout << "All tests have passed!\n";
     else
         cout << "ERROR!\n";
 
-    ECDSA ecdsa = ECDSA::getSECP256k1();
+    ECC ecc = ECC(Curve_parameters::curve_secp256k1());
     std::string msg = "Some encrypted message";
     cout << "msg: " << msg << '\n';
-    auto sign = ecdsa.sign_msg(msg);
+    auto sign = ecc.sign_msg(msg);
     cout << "Sign: (" << sign.first.to_string() << ";" << sign.second.to_string() << ")\n";
-    cout << "Verify: " << ECDSA::verify_msg(msg, sign, ecdsa.get_public_key(), ecdsa.get_parameters()) << '\n';
-    cout << "ECDSA data: " << ecdsa.serialize() << '\n';
+    cout << "Verify: " << ECC::verify_msg(msg, sign, ecc.get_public_key(), ecc.get_parameters()) << '\n';
+    cout << "ECC data: " << ecc.serialize() << '\n';
     std::vector<bool> a(1);
     return 0;
 }

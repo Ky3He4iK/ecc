@@ -67,3 +67,8 @@ Curve_parameters Curve_parameters::curve_secp256k1() {
 EllipticCurve Curve_parameters::create_curve() const {
     return EllipticCurve(curve_a, curve_b, curve_p);
 }
+
+Curve_parameters::Curve_parameters(const EllipticCurve &curve,
+                                   const Point &_base_point) : curve_a(curve.get_a()), curve_b(curve.get_b()),
+                                                               curve_p(curve.get_p()), base_point(_base_point),
+                                                               curve_order(curve.get_curve_order(_base_point)) {}

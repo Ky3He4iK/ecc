@@ -3,6 +3,6 @@ project(ecc)
 
 set(CMAKE_CXX_STANDARD 17)
 
-add_executable(ecc main.cpp LongInt.cpp LongInt.h EllipticCurve.cpp EllipticCurve.h Point.cpp Point.h ECDSA.cpp ECDSA.h dependences/picosha2.h dependences/json.hpp Curve_parameters.cpp Curve_parameters.h)
+add_executable(ecc main.cpp LongInt.cpp LongInt.h EllipticCurve.cpp EllipticCurve.h Point.cpp Point.h dependences/picosha2.h dependences/json.hpp Curve_parameters.cpp Curve_parameters.h ECC.cpp ECC.h)
 
 target_link_libraries(${PROJECT_NAME} gmp)
