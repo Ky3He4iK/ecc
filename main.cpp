@@ -5,6 +5,9 @@
 #include "curve/Point.h"
 #include "curve/ECC.h"
 
+#include <QApplication>
+#include "gui/MainWindow.h"
+
 using namespace std;
 
 #define ASSERT_BOOL(cond) {if (!(cond)) { \
@@ -95,34 +98,37 @@ std::string bin_str_to_hex(const std::string &str) {
     return res;
 }
 
-int main() {
-    bool k = testCurvesNPoints();
-    if (k)
-        cout << "All tests have passed!\n";
-    else
-        cout << "ERROR!\n";
-
-    ECC Bob = ECC(Curve_parameters::curve_secp256k1());
-    ECC Alice = ECC(Bob.get_parameters());
-    std::string msg = "Some encrypted message sent from Bob to Alice";
-    cout << "msg: " << msg << '\n';
-
-    auto sharedAlice = Alice.set_shared_secret(Bob.get_public_key());
-    auto sharedBob = Bob.set_shared_secret(Alice.get_public_key());
-    bool r = true;
-    ASSERT_TEST(sharedAlice, sharedBob, "Shared key match")
-    cout << "Shared: " << sharedAlice.to_string(16) << '\n';
-    auto encrypted = Bob.encode(msg);
-    cout << "Encrypted by Bob msg (in hex): " << bin_str_to_hex(encrypted) << '\n';
-    auto sign = Bob.sign_msg(msg);
-    cout << "Sign: (" << sign.first.to_string() << ";" << sign.second.to_string() << ")\n";
-
-    auto decrypted = Alice.decode(encrypted);
-    cout << "Decrypted by Alice: " << decrypted << '\n';
-    cout << "Verify: "
-         << (ECC::verify_msg(decrypted, sign, Bob.get_public_key(), Bob.get_parameters()) ? "Passed" : "Failed")
-         << '\n';
-    cout << "Bob data: " << Bob.serialize() << '\n';
-    cout << "Alice data: " << Alice.serialize() << '\n';
-    return 0;
+int main(int argc, char* argv[]) {
+//    bool k = testCurvesNPoints();
+//    if (k)
+//        cout << "All tests have passed!\n";
+//    else
+//        cout << "ERROR!\n";
+//
+//    ECC Bob = ECC(Curve_parameters::curve_secp256k1());
+//    ECC Alice = ECC(Bob.get_parameters());
+//    std::string msg = "Some encrypted message sent from Bob to Alice";
+//    cout << "msg: " << msg << '\n';
+//
+//    auto sharedAlice = Alice.set_shared_secret(Bob.get_public_key());
+//    auto sharedBob = Bob.set_shared_secret(Alice.get_public_key());
+//    bool r = true;
+//    ASSERT_TEST(sharedAlice, sharedBob, "Shared key match")
+//    cout << "Shared: " << sharedAlice.to_string(16) << '\n';
+//    auto encrypted = Bob.encode(msg);
+//    cout << "Encrypted by Bob msg (in hex): " << bin_str_to_hex(encrypted) << '\n';
+//    auto sign = Bob.sign_msg(msg);
+//    cout << "Sign: (" << sign.first.to_string() << ";" << sign.second.to_string() << ")\n";
+//
+//    auto decrypted = Alice.decode(encrypted);
+//    cout << "Decrypted by Alice: " << decrypted << '\n';
+//    cout << "Verify: "
+//         << (ECC::verify_msg(decrypted, sign, Bob.get_public_key(), Bob.get_parameters()) ? "Passed" : "Failed")
+//         << '\n';
+//    cout << "Bob data: " << Bob.serialize() << '\n';
+//    cout << "Alice data: " << Alice.serialize() << '\n';
+    QApplication app(argc, argv);
+    MainWindow window;
+    window.show();
+    return app.exec();
 }
