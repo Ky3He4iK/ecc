@@ -36,7 +36,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 #include <vector>
 #include <fstream>
 
-#include "../LongInt.h"
+#include "../curve/LongInt.h"
 
 namespace picosha2 {
     typedef uint32_t word_t;

@@ -7,7 +7,7 @@
 
 #include "LongInt.h"
 #include "Point.h"
-#include "dependences/json.hpp"
+#include "../dependences/json.hpp"
 #include "EllipticCurve.h"
 
 #define LONG_INT_FROM_JSON(json_obj) (LongInt((json_obj).get<std::string>(), 16))

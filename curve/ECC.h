@@ -8,7 +8,7 @@
 #include "EllipticCurve.h"
 #include <random>
 #include <string>
-#include "dependences/json.hpp"
+#include "../dependences/json.hpp"
 
 #include "Curve_parameters.h"
 

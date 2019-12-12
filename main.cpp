@@ -1,9 +1,9 @@
 #include <iostream>
 
-#include "LongInt.h"
-#include "EllipticCurve.h"
-#include "Point.h"
-#include "ECC.h"
+#include "curve/LongInt.h"
+#include "curve/EllipticCurve.h"
+#include "curve/Point.h"
+#include "curve/ECC.h"
 
 using namespace std;
 
@@ -80,6 +80,21 @@ bool testCurvesNPoints() {
     return r;
 }
 
+char itoc(int i) {
+    if (i < 0)
+        i += 16;
+    return (i < 10) ? i + '0' : i + 'A' - 10;
+}
+
+std::string bin_str_to_hex(const std::string &str) {
+    std::string res;
+    for (auto &c: str) {
+        res.push_back(itoc((c >> 4) & 0xf));
+        res.push_back(itoc(c & 0xf));
+    }
+    return res;
+}
+
 int main() {
     bool k = testCurvesNPoints();
     if (k)
@@ -98,7 +113,7 @@ int main() {
     ASSERT_TEST(sharedAlice, sharedBob, "Shared key match")
     cout << "Shared: " << sharedAlice.to_string(16) << '\n';
     auto encrypted = Bob.encode(msg);
-    cout << "Encrypted by Bob msg: " << encrypted << '\n';
+    cout << "Encrypted by Bob msg (in hex): " << bin_str_to_hex(encrypted) << '\n';
     auto sign = Bob.sign_msg(msg);
     cout << "Sign: (" << sign.first.to_string() << ";" << sign.second.to_string() << ")\n";
 

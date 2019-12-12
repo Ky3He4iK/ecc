@@ -3,8 +3,8 @@
 //
 
 #include "ECC.h"
-#include "dependences/picosha2.h"
-#include "dependences/AES.h"
+#include "../dependences/picosha2.h"
+#include "../dependences/AES.h"
 
 ECC::ECC(const std::shared_ptr<EllipticCurve> &curve, const Point &_base_point) {
     parameters = Curve_parameters(*curve, _base_point);
