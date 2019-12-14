@@ -3,3 +3,7 @@
 //
 
 #include "CurveWidget.h"
+
+CurveWidget::CurveWidget(QWidget *) {
+
+}

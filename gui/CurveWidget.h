@@ -6,10 +6,36 @@
 #define ECC_CURVEWIDGET_H
 
 #include <QWidget>
+#include <QGroupBox>
+#include <QPushButton>
+#include <QVector>
+#include <QPushButton>
+#include <QVBoxLayout>
+#include <QGridLayout>
+
+#include "LongIntWidget.h"
 
 class CurveWidget : public QWidget {
 Q_OBJECT
 
+private:
+    LongIntWidget *a;
+    LongIntWidget *b;
+    LongIntWidget *p;
+    LongIntWidget *base_point;
+    LongIntWidget *order;
+
+    QGroupBox *curve_selector;
+    QVector<QPushButton* > curve_options;
+
+    QPushButton *load_curve;
+    QPushButton *save_curve;
+
+    QGridLayout *layout;
+    QVBoxLayout *selector_layout;
+
+public:
+    CurveWidget(QWidget *parent = Q_NULLPTR);
 };
 
 

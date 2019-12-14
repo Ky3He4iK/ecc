@@ -14,7 +14,7 @@ MainWindow::MainWindow() {
     layout->addWidget(keysHolder, 0, 1);
 
     resultHolder = new ResultHolder();
-    layout->addWidget(resultHolder, 1, 0);
+    layout->addWidget(resultHolder, 1, 0, 1, 2);
 
     setLayout(layout);
 }

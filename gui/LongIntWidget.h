@@ -17,19 +17,23 @@ private:
     QLineEdit *line;
     QLabel *label;
     QHBoxLayout *layout;
+    bool is_for_key;
 
 public:
-    explicit LongIntWidget(const QString &_label = "", int input_len = 256, bool is_for_key = false,
+    explicit LongIntWidget(const QString &_label = "", bool _is_for_key = false,
                            QWidget *parent = Q_NULLPTR);
 
     [[nodiscard]] QString getContents() const;
 
     void setContents(const QString &new_content);
 
-    void setEnabled(bool enabled);
+//    void setEnabled(bool enabled);
+
+    void setInputLen(int input_len = 256);
 
 private slots:
-    void contentChangedSlot(const QString &);
+
+    void contentChangedSlot();
 
 signals:
 

@@ -15,7 +15,7 @@
 class ResultHolder : public QWidget {
 Q_OBJECT
 
-private:
+private: //todo: signing
     QTextEdit *clearText;
     QTextEdit *cypherText;
     QTextEdit *base64Cypher;

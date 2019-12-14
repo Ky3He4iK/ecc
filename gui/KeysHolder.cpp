@@ -7,18 +7,23 @@
 KeysHolder::KeysHolder(QWidget *) {
     layout = new QGridLayout();
 
-    private_key = new LongIntWidget("Your private key");
+    int int_len = 256;
+    private_key = new LongIntWidget("Your private key", false);
+    private_key->setInputLen(int_len);
     layout->addWidget(private_key, 0, 0);
 
-    my_public_key = new LongIntWidget("Your public key");
+    my_public_key = new LongIntWidget("Your public key", true);
     my_public_key->setEnabled(false);
+    my_public_key->setInputLen(int_len);
     layout->addWidget(my_public_key, 1, 0);
 
-    other_public_key = new LongIntWidget("Companion's public key");
+    other_public_key = new LongIntWidget("Companion's public key", true);
+    other_public_key->setInputLen(int_len);
     layout->addWidget(other_public_key, 2, 0);
 
-    shared_secret = new LongIntWidget("Shared secret key");
+    shared_secret = new LongIntWidget("Shared secret key", false);
     shared_secret->setEnabled(false);
+    shared_secret->setInputLen(int_len);
     layout->addWidget(shared_secret, 3, 0);
 
     generate_keypair = new QPushButton("Generate new keypair");
@@ -42,7 +47,7 @@ KeysHolder::KeysHolder(QWidget *) {
 
     connect(private_key, &LongIntWidget::contentChangedSignal, this, &KeysHolder::privateKeyChangedSlot);
 
-    generateKeypairSlot();
+//    generateKeypairSlot();
 }
 
 void KeysHolder::loadKeypairSlot() {
@@ -64,7 +69,6 @@ void KeysHolder::saveKeypairSlot() {
 }
 
 void KeysHolder::privateKeyChangedSlot() {
-    //todo: timeout before requesting public key
     if (state != 0)
         return;
     state = 2;
@@ -118,4 +122,11 @@ void KeysHolder::requestShared() {
     setEnabled(false);
     emit requestSharedSecretGenerate(private_key->getContents(), my_public_key->getContents(),
                                      other_public_key->getContents());
+}
+
+void KeysHolder::changeIntLen(int int_len) {
+    private_key->setInputLen(int_len);
+    my_public_key->setInputLen(int_len);
+    other_public_key->setInputLen(int_len);
+    shared_secret->setInputLen(int_len);
 }

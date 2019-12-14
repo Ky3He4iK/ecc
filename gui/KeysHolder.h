@@ -63,6 +63,8 @@ public slots:
 
     void emitKeys();
 
+    void changeIntLen(int new_len);
+
 signals:
 
     void keys(const QString &private_key, const QString &public_key, const QString &other_public_key,
