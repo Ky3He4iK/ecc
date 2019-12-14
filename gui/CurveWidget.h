@@ -12,6 +12,7 @@
 #include <QPushButton>
 #include <QVBoxLayout>
 #include <QGridLayout>
+#include <QLabel>
 
 #include "LongIntWidget.h"
 

@@ -4,6 +4,7 @@
 
 #include "Curve_parameters.h"
 
+#include <algorithm>
 
 Curve_parameters::Curve_parameters() : curve_a(), curve_b(), base_point(Point::inf_point(nullptr)), curve_order() {}
 
@@ -48,7 +49,7 @@ nlohmann::json Curve_parameters::to_json() const {
 }
 
 Curve_parameters Curve_parameters::curve_secp256k1() {
-    auto j =R"({
+    auto j = R"({
   "curve": {
     "a": "0",
     "b": "7",
@@ -72,3 +73,10 @@ Curve_parameters::Curve_parameters(const EllipticCurve &curve,
                                    const Point &_base_point) : curve_a(curve.get_a()), curve_b(curve.get_b()),
                                                                curve_p(curve.get_p()), base_point(_base_point),
                                                                curve_order(curve.get_curve_order(_base_point)) {}
+
+int Curve_parameters::bitLen() const {
+    return std::max({curve_a.get_actual_bits(), curve_b.get_actual_bits(), curve_p.get_actual_bits(),
+                     curve_order.get_actual_bits(), base_point.get_x().get_actual_bits(),
+                     base_point.get_y().get_actual_bits()
+                    });
+}

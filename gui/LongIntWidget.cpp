@@ -4,7 +4,7 @@
 
 #include "LongIntWidget.h"
 
-LongIntWidget::LongIntWidget(const QString &_label, bool _is_for_key, QWidget *) : is_for_key(_is_for_key) {
+LongIntWidget::LongIntWidget(const QString &_label, bool _is_for_point, QWidget *) : is_for_point(_is_for_point) {
     layout = new QHBoxLayout();
 
     label = new QLabel(_label);
@@ -37,9 +37,9 @@ void LongIntWidget::contentChangedSlot() {
 
 void LongIntWidget::setInputLen(int input_len) {
     QString input_mask;
-    if (is_for_key)
+    if (is_for_point)
         input_mask += "0H ";
-    for (int i = 0; i < input_len; i += 16)
+    for (int i = 0; i < input_len + 15; i += 16)
         input_mask += "HHHH ";
     line->setInputMask(">" + input_mask + ";0");
 //    if (line->text().isEmpty())

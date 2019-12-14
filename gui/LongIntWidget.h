@@ -17,10 +17,10 @@ private:
     QLineEdit *line;
     QLabel *label;
     QHBoxLayout *layout;
-    bool is_for_key;
+    bool is_for_point;
 
 public:
-    explicit LongIntWidget(const QString &_label = "", bool _is_for_key = false,
+    explicit LongIntWidget(const QString &_label = "", bool _is_for_point = false,
                            QWidget *parent = Q_NULLPTR);
 
     [[nodiscard]] QString getContents() const;

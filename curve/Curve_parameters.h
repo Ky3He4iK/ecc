@@ -28,6 +28,8 @@ struct Curve_parameters {
 
     [[nodiscard]] EllipticCurve create_curve() const;
 
+    int bitLen() const;
+
     static Curve_parameters deserialize(const std::string &data);
 
     static Curve_parameters deserialize(const nlohmann::json &data);
