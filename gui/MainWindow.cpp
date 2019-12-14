@@ -17,4 +17,20 @@ MainWindow::MainWindow() {
     layout->addWidget(resultHolder, 1, 0, 1, 2);
 
     setLayout(layout);
+
+    connect(curveWidget, &CurveWidget::encodingFinishedSignal, resultHolder, &ResultHolder::encodingFinishedSlot);
+    connect(curveWidget, &CurveWidget::decodingFinishedSignal, resultHolder, &ResultHolder::decodingFinishedSlot);
+    connect(resultHolder, &ResultHolder::encodeSignal, curveWidget, &CurveWidget::encodeSlot);
+    connect(resultHolder, &ResultHolder::decodeSignal, curveWidget, &CurveWidget::decodeSlot);
+
+    connect(curveWidget, &CurveWidget::keypairGeneratedSignal, keysHolder, &KeysHolder::keypairGenerated);
+    connect(curveWidget, &CurveWidget::sharedGeneratedSignal, keysHolder, &KeysHolder::sharedGenerated);
+    connect(curveWidget, &CurveWidget::publicByPrivateGeneratedSignal, keysHolder, &KeysHolder::publicByPrivateGenerated);
+    connect(curveWidget, &CurveWidget::requestKeysSignal, keysHolder, &KeysHolder::emitKeys);
+    connect(curveWidget, &CurveWidget::changeIntLenSignal, keysHolder, &KeysHolder::changeIntLen);
+
+    connect(keysHolder, &KeysHolder::keys, curveWidget, &CurveWidget::receiveKeysSlot);
+    connect(keysHolder, &KeysHolder::requestKeyGenerating, curveWidget, &CurveWidget::requestKeyGeneratingSlot);
+    connect(keysHolder, &KeysHolder::requestPublicByPrivate, curveWidget, &CurveWidget::requestPublicByPrivateSlot);
+    connect(keysHolder, &KeysHolder::requestSharedSecretGenerate, curveWidget, &CurveWidget::requestSharedSecretGenerate);
 }

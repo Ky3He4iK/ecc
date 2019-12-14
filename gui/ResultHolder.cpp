@@ -4,7 +4,7 @@
 
 #include "ResultHolder.h"
 
-ResultHolder::ResultHolder(QWidget *parent) {
+ResultHolder::ResultHolder(QWidget *) {
     layout = new QGridLayout();
 
     clearText = new QTextEdit();
@@ -25,10 +25,16 @@ ResultHolder::ResultHolder(QWidget *parent) {
     layout->addWidget(base64Cypher, 2, 1);
     layout->addWidget(base64CypherLabel, 2, 0);
 
+    signText = new QTextEdit();
+    signTextLabel = new QLabel("sign:");
+    signText->setPlaceholderText("Sign of encrypted message");
+    layout->addWidget(signText, 3, 1);
+    layout->addWidget(signTextLabel, 3, 0);
+
     encodeButton = new QPushButton("Encode");
     decodeButton = new QPushButton("Decode");
-    layout->addWidget(encodeButton, 3, 0);
-    layout->addWidget(decodeButton, 3, 1);
+    layout->addWidget(encodeButton, 4, 0);
+    layout->addWidget(decodeButton, 4, 1);
 
     setLayout(layout);
 
@@ -40,38 +46,39 @@ ResultHolder::ResultHolder(QWidget *parent) {
 }
 
 void ResultHolder::encodeButtonSlot() {
-    encodeButton->setEnabled(false);
-    decodeButton->setEnabled(false);
-    encodeButton->setChecked(true);
     state = 1;
+    encodeButton->setChecked(true);
+    setActive(false);
     emit encodeSignal(clearText->toPlainText());
 }
 
 void ResultHolder::decodeButtonSlot() {
-    encodeButton->setEnabled(false);
-    decodeButton->setEnabled(false);
-    decodeButton->setChecked(true);
     state = 2;
-    emit decodeSignal(cypherText->toPlainText());
+    decodeButton->setChecked(true);
+    setActive(false);
+    emit decodeSignal(cypherText->toPlainText(), signText->toPlainText());
 }
 
-void ResultHolder::calculationFinished(const QString &res) {
-    switch (state) {
-        case 1:
-            cypherText->setPlainText(res);
-            cypherTextChangedSlot();
-            break;
-        case 2:
-            clearText->setPlainText(res);
-            break;
-        default:
-            return;
-    }
-    state = 0;
-    encodeButton->setEnabled(true);
-    decodeButton->setEnabled(true);
+void ResultHolder::encodingFinishedSlot(const QString &res, const QString &sign) {
+    if (state != 1)
+        return;
+    cypherText->setPlainText(res);
+    cypherTextChangedSlot();
+    setActive(true);
     encodeButton->setChecked(false);
     decodeButton->setChecked(false);
+    state = 0;
+}
+
+void ResultHolder::decodingFinishedSlot(const QString &res, bool sign_correct) {
+    //todo: use sign_correct
+    if (state != 2)
+        return;
+    clearText->setPlainText(res);
+    setActive(true);
+    encodeButton->setChecked(false);
+    decodeButton->setChecked(false);
+    state = 0;
 }
 
 void ResultHolder::cypherTextChangedSlot() {
@@ -88,4 +95,13 @@ void ResultHolder::base64TextChangedSlot() {
     textChangedLock = true;
     cypherText->setPlainText(QString(QByteArray::fromBase64(base64Cypher->toPlainText().toUtf8())));
     textChangedLock = false;
+}
+
+void ResultHolder::setActive(bool active) {
+    clearText->setEnabled(active);
+    cypherText->setEnabled(active);
+    base64Cypher->setEnabled(active);
+    signText->setEnabled(active);
+    encodeButton->setEnabled(active);
+    decodeButton->setEnabled(active);
 }

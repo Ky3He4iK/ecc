@@ -19,9 +19,12 @@ private: //todo: signing
     QTextEdit *clearText;
     QTextEdit *cypherText;
     QTextEdit *base64Cypher;
+    QTextEdit *signText;
+
     QLabel *clearTextLabel;
     QLabel *cypherTextLabel;
     QLabel *base64CypherLabel;
+    QLabel *signTextLabel;
 
     QPushButton *encodeButton;
     QPushButton *decodeButton;
@@ -34,6 +37,8 @@ private: //todo: signing
     int state = 0;
     bool textChangedLock = false;
 
+    void setActive(bool active);
+
 public:
     explicit ResultHolder(QWidget *parent = Q_NULLPTR);
 
@@ -41,7 +46,7 @@ signals:
 
     void encodeSignal(const QString &cleartext);
 
-    void decodeSignal(const QString &cyphertext);
+    void decodeSignal(const QString &cyphertext, const QString &sign);
 
 private slots:
 
@@ -55,7 +60,9 @@ private slots:
 
 public slots:
 
-    void calculationFinished(const QString &res);
+    void encodingFinishedSlot(const QString &res, const QString &sign);
+
+    void decodingFinishedSlot(const QString &res, bool sign_correct);
 
 };
 
