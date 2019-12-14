@@ -213,3 +213,26 @@ Point &Point::operator=(const Point &other) {
     curve = other.curve;
     return *this;
 }
+
+Point::Point(const std::shared_ptr<EllipticCurve> &_curve, const std::string &hex_form): curve(_curve) {
+    int start = hex_form[0] != '0';
+    switch (hex_form[start]) {
+        case '2':
+            x = LongInt(hex_form.substr(2), 16);
+            y = curve->get_y(x, false);
+            break;
+        case '3':
+            x = LongInt(hex_form.substr(2), 16);
+            y = curve->get_y(x, true);
+            break;
+        case '4':
+            x = LongInt(hex_form.substr(2, hex_form.size() / 2 + 1), 16);
+            y = LongInt(hex_form.substr(hex_form.size() / 2 + 1), 16);
+            break;
+        default:
+            x = 0;
+            y = 0;
+            is_inf = true;
+            return;
+    }
+}

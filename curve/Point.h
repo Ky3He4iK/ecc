@@ -6,6 +6,7 @@
 #define ECC_POINT_H
 
 #include <array>
+#include <string>
 #include <memory>
 
 #include "EllipticCurve.h"
@@ -22,17 +23,20 @@ private:
 public:
     Point(const std::shared_ptr<EllipticCurve> &_curve, const LongInt &_x, const LongInt &_y);
 
+    // hex_form is string like 0x hhhh hhhh .... hhhh
+    // where x = 2 - compressed even
+    //           3 - compressed odd
+    //           4 - uncompressed form (both x and y)
+    // h - and hex char
+    Point(const std::shared_ptr<EllipticCurve> &_curve, const std::string &hex_form);
+
     Point(const Point &other) = default;
 
     Point();
 
     static std::array<LongInt, 3> extended_gcd(const LongInt &a, const LongInt &b);
 
-    static std::array<int, 3> extended_gcd(int a, int b);
-
     static LongInt inverse_mod(const LongInt &k, const LongInt &p);
-
-    static LongInt inverse_mod(int k, const LongInt &p);
 
     bool get_inf() const {
         return is_inf;
