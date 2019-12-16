@@ -77,12 +77,14 @@ void KeysHolder::privateKeyChangedSlot() {
 }
 
 void KeysHolder::keypairGenerated(const QString &new_private_key, const QString &public_key) {
-    if (state != 1)
-        return;
+//    if (state != 1)
+//        return;
     private_key->setContents(new_private_key);
     my_public_key->setContents(public_key);
     setEnabled(true);
     state = 0;
+    if (!other_public_key->getContents().isEmpty())
+        requestShared();
 }
 
 void KeysHolder::publicByPrivateGenerated(const QString &public_key) {

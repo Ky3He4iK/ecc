@@ -108,6 +108,8 @@ LongInt LongInt::operator*(const LongInt &other) const {
 
 
 LongInt LongInt::operator%(const LongInt &other) const {
+    if (other == 0)
+        return LongInt();
     mpz_class res;
     mpz_fdiv_r(res.get_mpz_t(), num_mpz_t, other.num.get_mpz_t());
     return LongInt(res);

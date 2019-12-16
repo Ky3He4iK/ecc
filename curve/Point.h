@@ -46,9 +46,13 @@ public:
 
     static Point inf_point(const std::shared_ptr<EllipticCurve> &curve);
 
+    std::shared_ptr<EllipticCurve> get_curve() const;
+
     const LongInt &get_x() const;
 
     const LongInt &get_y() const;
+
+    std::string to_human_string() const;
 
     std::string to_string() const;
 

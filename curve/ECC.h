@@ -30,6 +30,7 @@ public:
 
     explicit ECC(const Curve_parameters &_parameters);
 
+    void set_keys(const Private_key &priv, const Public_key &pub);
 
     // ECDSA
     [[nodiscard]] Sign sign_msg(const std::string &message) const;
@@ -47,11 +48,15 @@ public:
 
     static std::pair<Private_key, Public_key> create_keys(const Curve_parameters &parameters);
 
+    Public_key generatePublic(const Private_key &priv);
+
     [[nodiscard]] Public_key get_public_key() const;
 
     [[nodiscard]] Private_key get_private_key() const;
 
     [[nodiscard]] Curve_parameters get_parameters() const;
+
+    [[nodiscard]] std::shared_ptr<EllipticCurve> get_curve() const;
 
     [[nodiscard]] std::string serialize() const;
 

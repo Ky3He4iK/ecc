@@ -174,10 +174,16 @@ bool Point::on_curve() const {
            ((y * y - x * x * x - curve->get_a() * x - curve->get_b()) % curve->get_p() == 0);
 }
 
-std::string Point::to_string() const {
+std::string Point::to_human_string() const {
     if (is_inf)
         return "Infinity";
     return std::string("(") + x.to_string() + "; " + y.to_string() + ")";
+}
+
+std::string Point::to_string() const {
+    if (is_inf)
+        return "0";
+    return std::string("0") + (y.is_odd() ? '3' : '2') + x.to_string(16);
 }
 
 bool Point::operator==(const Point &other) const {
@@ -195,7 +201,7 @@ const LongInt &Point::get_y() const {
 }
 
 Point Point::operator/(const LongInt &k) const {
-    return *this *inverse_mod(LongInt(k), curve->get_saved_curve_order());
+    return *this * inverse_mod(LongInt(k), curve->get_saved_curve_order());
 }
 
 Point Point::operator/(int k) const {
@@ -214,7 +220,7 @@ Point &Point::operator=(const Point &other) {
     return *this;
 }
 
-Point::Point(const std::shared_ptr<EllipticCurve> &_curve, const std::string &hex_form): curve(_curve) {
+Point::Point(const std::shared_ptr<EllipticCurve> &_curve, const std::string &hex_form) : curve(_curve) {
     int start = hex_form[0] != '0';
     switch (hex_form[start]) {
         case '2':
@@ -235,4 +241,8 @@ Point::Point(const std::shared_ptr<EllipticCurve> &_curve, const std::string &he
             is_inf = true;
             return;
     }
+}
+
+std::shared_ptr<EllipticCurve> Point::get_curve() const {
+    return curve;
 }

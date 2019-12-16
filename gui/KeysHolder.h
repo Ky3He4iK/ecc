@@ -68,7 +68,7 @@ public slots:
 signals:
 
     void keys(const QString &private_key, const QString &public_key, const QString &other_public_key,
-              const QString &shared_secred);
+              const QString &shared_secret);
 
     void requestKeyGenerating();
 

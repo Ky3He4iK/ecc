@@ -124,3 +124,18 @@ Private_key ECC::set_shared_secret(const Public_key &another) {
     shared_secret = (another * private_key).get_x();
     return shared_secret;
 }
+
+void ECC::set_keys(const Private_key &priv, const Public_key &pub) {
+    private_key = priv;
+    public_key = Point(public_key.get_curve(), pub.get_x(), pub.get_y());
+}
+
+std::shared_ptr<EllipticCurve> ECC::get_curve() const {
+    return public_key.get_curve();
+}
+
+Public_key ECC::generatePublic(const Private_key &priv) {
+    private_key = priv;
+    public_key = parameters.base_point* priv;
+    return public_key;
+}

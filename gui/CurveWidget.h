@@ -15,6 +15,7 @@
 #include <QLabel>
 
 #include "LongIntWidget.h"
+#include "../curve/ECC.h"
 
 class CurveWidget : public QWidget {
 Q_OBJECT
@@ -31,24 +32,35 @@ private:
 
     QPushButton *load_curve;
     QPushButton *save_curve;
+    QPushButton *len_selecter;
 
     QGridLayout *layout;
     QVBoxLayout *selector_layout;
 
-    bool curve_is_untouched = false;
+    bool lock = false;
+
+    int state = 0;
+    int last_curve = -1;
+
+    ECC ecc;
+
+    QString temp;
+    QString temp2;
+
+    void toCustom();
 
 public:
     explicit CurveWidget(QWidget *parent = Q_NULLPTR);
 
 private slots:
 
-    void longIntChanged();
+    void longIntChanged(int new_int);
 
     void loadCurveSlot();
 
     void saveCurveSlot();
 
-    void curveSelectedSlot(bool);
+    void curveSelectedSlot();
 
 public slots:
 
@@ -58,7 +70,7 @@ public slots:
 
 
     void receiveKeysSlot(const QString &private_key, const QString &public_key, const QString &other_public_key,
-                         const QString &shared_secred);
+                         const QString &shared_secret);
 
     void requestKeyGeneratingSlot();
 
