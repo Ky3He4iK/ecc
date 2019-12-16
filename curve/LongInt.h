@@ -35,7 +35,7 @@ public:
 
     [[nodiscard]] std::string to_bin_string() const;
 
-    int to_int() const;
+    [[nodiscard]] int to_int() const;
 
     [[nodiscard]] size_t get_actual_bits() const;
 

@@ -9,6 +9,7 @@
 #include <QLineEdit>
 #include <QLabel>
 #include <QHBoxLayout>
+#include <QScrollArea>
 
 class LongIntWidget : public QWidget {
 Q_OBJECT

@@ -94,10 +94,15 @@ void CurveWidget::saveCurveSlot() {
 }
 
 void CurveWidget::curveSelectedSlot() {
+    if ((*curve_options.rbegin())->isChecked()) {
+        toCustom();
+        return;
+    }
     lock = true;
     for (int i = 0; i < curve_options.size(); i++)
         if (curve_options[i]->isChecked()) {
             if (i != last_curve) {
+                last_curve = i;
                 auto[param, len] = CurveManager::getInstance().getCurves(curve_options[i]->text().toStdString());
                 ecc = ECC(param);
                 longIntChanged(len);
@@ -177,5 +182,5 @@ void CurveWidget::requestSharedSecretGenerate(const QString &private_key, const 
 
 void CurveWidget::toCustom() {
     last_curve = curve_options.size() - 1;
-    //todo
+    curve_options[last_curve]->setChecked(true);
 }

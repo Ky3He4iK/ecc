@@ -10,12 +10,18 @@ LongIntWidget::LongIntWidget(const QString &_label, bool _is_for_point, QWidget 
     label = new QLabel(_label);
     layout->addWidget(label);
 
+//    auto scrollArea = new QScrollArea();
     line = new QLineEdit();
+//    scrollArea->setWidget(line);
+//    scrollArea->setFixedHeight(line->height());
+//    scrollArea->setWidgetResizable(true);
 
+//    layout->addWidget(scrollArea);
     layout->addWidget(line);
 
     setLayout(layout);
 
+//    line->showMaximized();
     connect(line, &QLineEdit::editingFinished, this, &LongIntWidget::contentChangedSlot);
 }
 

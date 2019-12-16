@@ -11,10 +11,10 @@ MainWindow::MainWindow() {
     layout->addWidget(curveWidget, 0, 0);
 
     keysHolder = new KeysHolder();
-    layout->addWidget(keysHolder, 0, 1);
+    layout->addWidget(keysHolder, 1, 0);
 
     resultHolder = new ResultHolder();
-    layout->addWidget(resultHolder, 1, 0, 1, 2);
+    layout->addWidget(resultHolder, 2, 0);
 
     setLayout(layout);
 
