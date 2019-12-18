@@ -69,6 +69,8 @@ Point Point::operator+(const Point &other) const {
     Point res(curve, xr, (m * (x - xr) - y) % curve->get_p());
 
     ASSERT_ON_CURVE(res)
+    if (!res.curve->contains(res))
+        return Point::inf_point(curve);
     return res;
 }
 
