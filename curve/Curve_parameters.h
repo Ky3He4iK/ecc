@@ -31,7 +31,17 @@ struct Curve_parameters {
 
     [[nodiscard]] EllipticCurve create_curve() const;
 
-    int bitLen() const;
+    [[nodiscard]] int bitLen() const;
+
+    [[nodiscard]] LongInt get_a() const;
+
+    [[nodiscard]] LongInt get_b() const;
+
+    [[nodiscard]] LongInt get_p() const;
+
+    [[nodiscard]] Point get_base_point() const;
+
+    [[nodiscard]] LongInt get_order() const;
 
     static Curve_parameters deserialize(const std::string &data);
 

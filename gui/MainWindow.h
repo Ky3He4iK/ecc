@@ -9,7 +9,6 @@
 #include <QGridLayout>
 #include <QVBoxLayout>
 #include <QLabel>
-#include <QLineEdit>
 #include <QTextEdit>
 #include <QPushButton>
 #include <QGroupBox>
@@ -17,6 +16,7 @@
 #include <QVector>
 
 #include "../curve/ECC.h"
+#include "MyLineEdit.h"
 #include <bitset>
 
 class MainWindow : public QWidget {
@@ -40,21 +40,22 @@ private:
     QLabel *label_base64;
     QLabel *label_sign;
 
-    QLineEdit *edit_a;
-    QLineEdit *edit_b;
-    QLineEdit *edit_p;
-    QLineEdit *edit_base_point;
-    QLineEdit *edit_order;
-    QLineEdit *edit_private;
-    QLineEdit *edit_public;
-    QLineEdit *edit_other_public;
-    QLineEdit *edit_shared;
+    MyLineEdit *edit_a;
+    MyLineEdit *edit_b;
+    MyLineEdit *edit_p;
+    MyLineEdit *edit_base_point;
+    MyLineEdit *edit_order;
+    MyLineEdit *edit_private;
+    MyLineEdit *edit_public;
+    MyLineEdit *edit_other_public;
+    MyLineEdit *edit_shared;
 
     QTextEdit *edit_clear_text;
     QTextEdit *edit_cypher;
     QTextEdit *edit_base64;
     QTextEdit *edit_sign;
 
+    QPushButton *button_generate_key;
     QPushButton *button_load_curve;
     QPushButton *button_load_key_pair;
     QPushButton *button_load_other;
@@ -69,18 +70,23 @@ private:
 
     ECC ecc;
 
-    std::bitset<9> is_for_point = {0b000100110};
+    std::bitset<9> is_for_point = {0b011001000};
     int selected_curve = -1;
     int selected_len = 256;
+
+    bool lock = false;
 
     void set_len(int new_len);
 
     void update_curve_edits();
+
 public:
 
     explicit MainWindow(QWidget * = Q_NULLPTR);
 
 private slots:
+
+    void buttonGenerateKeySlot();
 
     void buttonLoadCurveSlot();
 

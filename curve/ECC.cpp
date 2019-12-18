@@ -126,6 +126,8 @@ std::string ECC::decode(std::string &msg) const {
 }
 
 Private_key ECC::set_shared_secret(const Public_key &another) {
+    if (another.get_inf())
+        return Private_key();
     shared_secret = (another * private_key).get_x();
     return shared_secret;
 }

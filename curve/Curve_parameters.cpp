@@ -14,7 +14,7 @@ Curve_parameters::Curve_parameters(const LongInt &_curve_a, const LongInt &_curv
 
 Curve_parameters::Curve_parameters(const std::string &_curve_a, const std::string &_curve_b,
                                    const std::string &_curve_p, const std::string &_base_point,
-                                   const std::string &_curve_order) : curve_a(_curve_a, 16), curve_b(_curve_a, 16),
+                                   const std::string &_curve_order) : curve_a(_curve_a, 16), curve_b(_curve_b, 16),
                                                                       curve_p(_curve_p, 16),
                                                                       curve_order(_curve_order, 16) {
     auto curve = EllipticCurve(curve_a, curve_b, curve_p);
@@ -89,4 +89,24 @@ int Curve_parameters::bitLen() const {
                      curve_order.get_actual_bits(), base_point.get_x().get_actual_bits(),
                      base_point.get_y().get_actual_bits()
                     });
+}
+
+LongInt Curve_parameters::get_a() const {
+    return curve_a;
+}
+
+LongInt Curve_parameters::get_b() const {
+    return curve_b;
+}
+
+LongInt Curve_parameters::get_p() const {
+    return curve_p;
+}
+
+Point Curve_parameters::get_base_point() const {
+    return base_point;
+}
+
+LongInt Curve_parameters::get_order() const {
+    return curve_order;
 }

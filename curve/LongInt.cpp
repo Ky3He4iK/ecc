@@ -218,6 +218,8 @@ LongInt LongInt::operator-() const {
 // Calculate (x ** y) % z efficiently.
 LongInt LongInt::pow_and_mod(const LongInt &y, const LongInt &z) const {
     mpz_class res;
+    if (z == 0)
+        return LongInt(0);
     mpz_powm_sec(res.get_mpz_t(), num_mpz_t, y.num.get_mpz_t(), z.num.get_mpz_t());
     return LongInt(res);
 }
