@@ -203,7 +203,7 @@ void MainWindow::set_len(int new_len) {
         QString input_mask;
         for (int i = 0; i < new_len; i += 16)
             input_mask += "HHHH ";
-        input_mask += ";0";
+        input_mask += ";O";
         auto point_prefix = "\\09 ";
         auto int_prefix = "   ";
         edit_a->setInputMask(QString(">") + (is_for_point[0] ? point_prefix : int_prefix) + input_mask);
@@ -273,7 +273,7 @@ void MainWindow::buttonEncodeSlot() {
 void MainWindow::buttonDecodeSlot() {
     SAFE_BEGIN
         auto cypher = edit_clear_text->toPlainText().toStdString();
-        auto clear = ecc.encode(cypher);
+        auto clear = ecc.decode(cypher);
         edit_clear_text->setPlainText(QString::fromStdString(clear));
 
         auto s = edit_sign->toPlainText().split(';');

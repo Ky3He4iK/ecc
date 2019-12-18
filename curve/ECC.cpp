@@ -28,7 +28,6 @@ std::pair<Private_key, Public_key> ECC::create_keys(const Curve_parameters &para
     while (res.first == 0 || res.first >= parameters.curve_order)
         res.first = LongInt::get_random(parameters.curve_order.get_actual_bits()) % parameters.curve_order;
     res.second = Public_key(parameters.base_point * res.first);
-    std::cerr << res.first.to_string(16) << ' ' << res.second.to_string() << '\n';
     return res;
 }
 
@@ -120,14 +119,13 @@ std::string ECC::decode(std::string &msg) const {
         return "";
     }
     AES aes(256);
-    unsigned int len = 0;
     std::string res((char *) aes.DecryptECB((unsigned char *) msg.c_str(), msg.length(),
                                             (unsigned char *) shared_secret.to_bin_string().c_str()));
     return res;
 }
 
 Private_key ECC::set_shared_secret(const Public_key &another) {
-    if (another.get_inf())
+    if (another.get_inf() || public_key.get_inf())
         return Private_key();
     shared_secret = (another * private_key).get_x();
     return shared_secret;
