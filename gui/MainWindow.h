@@ -14,6 +14,7 @@
 #include <QGroupBox>
 #include <QString>
 #include <QVector>
+#include <QRadioButton>
 
 #include "../curve/ECC.h"
 #include "MyLineEdit.h"
@@ -64,8 +65,8 @@ private:
     QPushButton *button_decode;
 
     QGroupBox *group_curve, *group_len;
-    QVector<QPushButton *> curve_options;
-    QVector<QPushButton *> len_options;
+    QVector<QRadioButton *> curve_options;
+    QVector<QRadioButton *> len_options;
 
     ECC ecc;
 

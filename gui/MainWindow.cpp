@@ -126,16 +126,17 @@ MainWindow::MainWindow(QWidget *) : ecc(ECC(Curve_parameters::curve_secp256k1())
     int p = 0;
     for (auto &name: manager.getCurveNames()) {
         auto[curve, len] = manager.getCurve(name);
+        lens.emplace(len);
+        curve_options.push_back(new QRadioButton(QString::fromStdString(name)));
         if (name == "secp256k1") {
             selected_curve = p;
+            (*curve_options.rbegin())->setChecked(true);
         }
-        lens.emplace(len);
-        curve_options.push_back(new QPushButton(QString::fromStdString(name)));
         curves_layout->addWidget(*curve_options.rbegin());
         connect(*curve_options.rbegin(), &QPushButton::pressed, this, &MainWindow::groupCurvePressed);
         p++;
     }
-    curve_options.push_back(new QPushButton("custom"));
+    curve_options.push_back(new QRadioButton("custom"));
     curves_layout->addWidget(*curve_options.rbegin());
     connect(*curve_options.rbegin(), &QPushButton::pressed, this, &MainWindow::groupCurvePressed);
 
@@ -143,9 +144,11 @@ MainWindow::MainWindow(QWidget *) : ecc(ECC(Curve_parameters::curve_secp256k1())
     buttons_layout->addWidget(group_len);
     auto len_layout = new QVBoxLayout();
     for (auto &len: lens) {
-        len_options.push_back(new QPushButton(QString::number(len)));
+        len_options.push_back(new QRadioButton(QString::number(len)));
         len_layout->addWidget(*len_options.rbegin());
         connect(*len_options.rbegin(), &QPushButton::pressed, this, &MainWindow::groupLenPressed);
+        if (len == selected_len)
+            (*len_options.rbegin())->setChecked(true);
     }
 
     group_curve->setLayout(curves_layout);
