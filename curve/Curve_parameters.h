@@ -18,6 +18,9 @@ struct Curve_parameters {
     Curve_parameters(const LongInt &_curve_a, const LongInt &_curve_b, const LongInt &_curve_p,
                      const Point &_base_point, const LongInt &_curve_order);
 
+    Curve_parameters(const std::string &_curve_a, const std::string &_curve_b, const std::string &_curve_p,
+                     const std::string &_base_point, const std::string &_curve_order);
+
     Curve_parameters(const EllipticCurve &_curve, const Point &_base_point);
 
     Curve_parameters &operator=(const Curve_parameters &other) = default;

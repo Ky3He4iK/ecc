@@ -7,6 +7,7 @@
 
 #include <QWidget>
 #include <QGridLayout>
+#include <QVBoxLayout>
 #include <QLabel>
 #include <QLineEdit>
 #include <QTextEdit>
@@ -23,6 +24,7 @@ Q_OBJECT
 
 private:
     QGridLayout *layout;
+    QVBoxLayout *buttons_layout;
 
     QLabel *label_a;
     QLabel *label_b;

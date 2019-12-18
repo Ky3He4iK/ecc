@@ -5,9 +5,19 @@
 #include <QRegExpValidator>
 #include "MainWindow.h"
 #include "../curve/Curve_parameters.h"
+#include <QFont>
+
+#define LE_TO_LI(lineEdit) (LongInt((lineEdit)->text().toStdString(), 16))
+#define LE_TO_P(lineEdit, curve) (Point((curve), (lineEdit)->text().toStdString()))
+#define SAFE_BEGIN try {
+#define SAFE_END } catch (int) {}
 
 MainWindow::MainWindow(QWidget *) : ecc(ECC(Curve_parameters::curve_secp256k1())) {
+    auto font = QFont("DejaVu");
+    font.setStyleHint(QFont::StyleHint::Monospace);
+    setFont(font);
     layout = new QGridLayout();
+    buttons_layout = new QVBoxLayout();
 
     label_a = new QLabel("a:");
     layout->addWidget(label_a, 0, 0);
@@ -33,7 +43,7 @@ MainWindow::MainWindow(QWidget *) : ecc(ECC(Curve_parameters::curve_secp256k1())
     layout->addWidget(label_cypher, 10, 0);
     label_base64 = new QLabel("cyphered text:\n(base 64)");
     layout->addWidget(label_base64, 11, 0);
-    label_sign = new QLabel();
+    label_sign = new QLabel("sign:");
     layout->addWidget(label_sign, 12, 0);
 
     edit_a = new QLineEdit();
@@ -88,33 +98,63 @@ MainWindow::MainWindow(QWidget *) : ecc(ECC(Curve_parameters::curve_secp256k1())
     edit_sign->setPlaceholderText("Field for signing message");
     layout->addWidget(edit_sign, 12, 1);
 
-    button_load_curve = new QPushButton("Load curve from file");
-    layout->addWidget(button_load_curve, 6, 2);
-    button_load_key_pair = new QPushButton("Load private key from file");
-    layout->addWidget(button_load_key_pair, 7, 2);
-    button_load_other = new QPushButton("Load other key from file");
-    layout->addWidget(button_load_other, 8, 2);
-    button_save_curve = new QPushButton("Save curve to file");
-    layout->addWidget(button_save_curve, 9, 2);
-    button_save_key_pair = new QPushButton("Save key pair to file");
-    layout->addWidget(button_save_key_pair, 10, 2);
-    button_encode = new QPushButton("Encode");
-    layout->addWidget(button_encode, 11, 2);
-    button_decode = new QPushButton("Decode");
-    layout->addWidget(button_decode, 12, 2);
-
     group_curve = new QGroupBox();
-    layout->addWidget(group_curve, 0, 2, 3, 1);
-
+    buttons_layout->addWidget(group_curve);
     group_len = new QGroupBox();
-    layout->addWidget(group_len, 3, 2, 3, 1);
+    buttons_layout->addWidget(group_len);
+
+    button_load_curve = new QPushButton("Load curve from file");
+    buttons_layout->addWidget(button_load_curve);
+    button_load_key_pair = new QPushButton("Load private key from file");
+    buttons_layout->addWidget(button_load_key_pair);
+    button_load_other = new QPushButton("Load other key from file");
+    buttons_layout->addWidget(button_load_other);
+    button_save_curve = new QPushButton("Save curve to file");
+    buttons_layout->addWidget(button_save_curve);
+    button_save_key_pair = new QPushButton("Save key pair to file");
+    buttons_layout->addWidget(button_save_key_pair);
+    button_encode = new QPushButton("Encode");
+    buttons_layout->addWidget(button_encode);
+    button_decode = new QPushButton("Decode");
+    buttons_layout->addWidget(button_decode);
+
+    layout->addLayout(buttons_layout, 0, 2, layout->rowCount(), 1);
 
     setLayout(layout);
-    setMinimumWidth(1300);
+    setMinimumWidth(1366);
     set_len(256);
+
+    connect(edit_a, &QLineEdit::editingFinished, this, &MainWindow::editCurveChanged);
+    connect(edit_b, &QLineEdit::editingFinished, this, &MainWindow::editCurveChanged);
+    connect(edit_p, &QLineEdit::editingFinished, this, &MainWindow::editCurveChanged);
+    connect(edit_base_point, &QLineEdit::editingFinished, this, &MainWindow::editCurveChanged);
+    connect(edit_order, &QLineEdit::editingFinished, this, &MainWindow::editCurveChanged);
+    connect(edit_private, &QLineEdit::editingFinished, this, &MainWindow::editPrivateChanged);
+    connect(edit_other_public, &QLineEdit::editingFinished, this, &MainWindow::editOtherChanged);
+    connect(edit_cypher, &QTextEdit::textChanged, this, &MainWindow::editCypherChangedSlot);
+    connect(edit_base64, &QTextEdit::textChanged, this, &MainWindow::editBase64ChangedSlot);
+
+//    void buttonLoadCurveSlot();
+//
+//    void buttonLoadKeyPairSlot();
+//
+//    void buttonLoadOtherSlot();
+//
+//    void buttonSaveCurveSlot();
+//
+//    void buttonSaveKeyPairSlot();
+//
+//    void buttonEncodeSlot();
+//
+//    void buttonDecodeSlot();
+//
+//    void groupCurvePressed();
+//
+//    void groupLenPressed();
 }
 
 void MainWindow::set_len(int new_len) {
+    SAFE_BEGIN
     QString input_mask;
     for (int i = 0; i < new_len + 15; i += 16)
         input_mask += "HHHH ";
@@ -134,57 +174,72 @@ void MainWindow::set_len(int new_len) {
 
 
 void MainWindow::buttonLoadCurveSlot() {
-
+    SAFE_BEGIN
+    //todo
 }
 
 void MainWindow::buttonLoadKeyPairSlot() {
-
+    SAFE_BEGIN
+    //todo
 }
 
 void MainWindow::buttonLoadOtherSlot() {
-
+    SAFE_BEGIN
+    //todo
 }
 
 void MainWindow::buttonSaveCurveSlot() {
-
+    SAFE_BEGIN
+    //todo
 }
 
 void MainWindow::buttonSaveKeyPairSlot() {
-
+    SAFE_BEGIN
+    //todo
 }
 
 void MainWindow::buttonEncodeSlot() {
-
+    SAFE_BEGIN
+    //todo
 }
 
 void MainWindow::buttonDecodeSlot() {
-
+    SAFE_BEGIN
+    //todo
 }
 
 void MainWindow::editCypherChangedSlot() {
-
+    SAFE_BEGIN
+    edit_base64->setPlainText(edit_cypher->toPlainText().toUtf8().toBase64());
 }
 
 void MainWindow::editBase64ChangedSlot() {
-
+    SAFE_BEGIN
+    edit_cypher->setPlainText(QString(QByteArray::fromBase64(edit_base64->toPlainText().toUtf8())));
 }
 
+    SAFE_BEGIN
 void MainWindow::groupCurvePressed() {
-
+    //todo
 }
 
+        SAFE_BEGIN
 void MainWindow::groupLenPressed() {
-
+    //todo
 }
 
 void MainWindow::editCurveChanged() {
-
+    SAFE_BEGIN
+        ecc = ECC(Curve_parameters(edit_a->text().toStdString(), edit_b->text().toStdString(),
+                                   edit_p->text().toStdString(),
+                                   edit_base_point->text().toStdString(), edit_order->text().toStdString()));
+    SAFE_END
 }
 
 void MainWindow::editPrivateChanged() {
-
+    //todo
 }
 
 void MainWindow::editOtherChanged() {
-
+    //todo
 }

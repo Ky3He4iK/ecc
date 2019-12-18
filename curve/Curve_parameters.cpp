@@ -12,6 +12,16 @@ Curve_parameters::Curve_parameters(const LongInt &_curve_a, const LongInt &_curv
                                    const Point &_base_point, const LongInt &_curve_order) :
         curve_a(_curve_a), curve_b(_curve_b), curve_p(_curve_p), base_point(_base_point), curve_order(_curve_order) {}
 
+Curve_parameters::Curve_parameters(const std::string &_curve_a, const std::string &_curve_b,
+                                   const std::string &_curve_p, const std::string &_base_point,
+                                   const std::string &_curve_order) : curve_a(_curve_a, 16), curve_b(_curve_a, 16),
+                                                                      curve_p(_curve_p, 16),
+                                                                      curve_order(_curve_order, 16) {
+    auto curve = EllipticCurve(curve_a, curve_b, curve_p);
+    base_point = Point(std::make_shared<EllipticCurve>(curve), _base_point);
+    curve.set_curve_order(base_point, curve_order);
+}
+
 std::string Curve_parameters::serialize() const {
     return to_json().dump(4);
 }
