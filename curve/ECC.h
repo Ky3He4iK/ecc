@@ -50,6 +50,8 @@ public:
 
     Public_key generatePublic(const Private_key &priv);
 
+    void set_private_key(const Private_key &key);
+
     [[nodiscard]] Public_key get_public_key() const;
 
     [[nodiscard]] Private_key get_private_key() const;

@@ -39,6 +39,11 @@ Private_key ECC::get_private_key() const {
     return private_key;
 }
 
+void ECC::set_private_key(const Private_key &key) {
+    private_key = key;
+    public_key = parameters.base_point * private_key;
+}
+
 Curve_parameters ECC::get_parameters() const {
     return parameters;
 }
@@ -136,6 +141,6 @@ std::shared_ptr<EllipticCurve> ECC::get_curve() const {
 
 Public_key ECC::generatePublic(const Private_key &priv) {
     private_key = priv;
-    public_key = parameters.base_point* priv;
+    public_key = parameters.base_point * priv;
     return public_key;
 }

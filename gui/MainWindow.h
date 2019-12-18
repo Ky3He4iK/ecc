@@ -70,9 +70,12 @@ private:
     ECC ecc;
 
     std::bitset<9> is_for_point = {0b000100110};
+    int selected_curve = -1;
+    int selected_len = 256;
 
     void set_len(int new_len);
 
+    void update_curve_edits();
 public:
 
     explicit MainWindow(QWidget * = Q_NULLPTR);

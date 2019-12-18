@@ -22,7 +22,7 @@ private:
 public:
     static CurveManager &getInstance();
 
-    [[nodiscard]] std::pair<Curve_parameters, int> getCurves(const std::string &str) const;
+    [[nodiscard]] std::pair<Curve_parameters, int> getCurve(const std::string &str) const;
 
     [[nodiscard]] std::vector<std::string> getCurveNames() const;
 

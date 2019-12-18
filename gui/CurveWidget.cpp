@@ -17,7 +17,7 @@ CurveWidget::CurveWidget(QWidget *) : ecc(ECC(Curve_parameters::curve_secp256k1(
     int bit_len = 256;
 
     for (auto &curve_name: curve_names) {
-        auto[curve, len] = manager.getCurves(curve_name);
+        auto[curve, len] = manager.getCurve(curve_name);
         curve_options.push_back(new QPushButton(QString(curve_name.c_str())));
         selector_layout->addWidget(*curve_options.rbegin());
         if (curve_name == curve_names[0])
@@ -103,7 +103,7 @@ void CurveWidget::curveSelectedSlot() {
         if (curve_options[i]->isChecked()) {
             if (i != last_curve) {
                 last_curve = i;
-                auto[param, len] = CurveManager::getInstance().getCurves(curve_options[i]->text().toStdString());
+                auto[param, len] = CurveManager::getInstance().getCurve(curve_options[i]->text().toStdString());
                 ecc = ECC(param);
                 longIntChanged(len);
 

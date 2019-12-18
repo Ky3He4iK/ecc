@@ -31,7 +31,7 @@ CurveManager &CurveManager::getInstance() {
     return curveManager;
 }
 
-std::pair<Curve_parameters, int> CurveManager::getCurves(const std::string &str) const {
+std::pair<Curve_parameters, int> CurveManager::getCurve(const std::string &str) const {
     auto res = loaded_curves.find(str);
     if (res != loaded_curves.end())
         return res->second;
