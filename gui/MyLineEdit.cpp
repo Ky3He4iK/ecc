@@ -10,7 +10,7 @@ MyLineEdit::MyLineEdit(QWidget *) {
 
 void MyLineEdit::setValue(int bit_len, const QString &data, bool is_point) {
     if (is_point) {
-        setText(data);
+        setText(data.isEmpty() ? QString(bit_len / 4 + 2, '0') : data);
         old = text();
         return;
     }
@@ -29,7 +29,10 @@ void MyLineEdit::setValue(int bit_len, const LongInt &data) {
 }
 
 void MyLineEdit::setValue(int bit_len, const Point &data) {
-    setValue(bit_len, QString::fromStdString(data.to_string(bit_len)), true);
+    if (data.get_inf())
+        setValue(bit_len, "", true);
+    else
+        setValue(bit_len, QString::fromStdString(data.to_string(bit_len)), true);
 }
 
 void MyLineEdit::editedSlot() {

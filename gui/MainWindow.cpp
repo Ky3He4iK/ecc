@@ -3,9 +3,10 @@
 //
 
 #include "MainWindow.h"
-#include "InfoDialog.h"
 #include "../curve/Curve_parameters.h"
 #include "../curve/CurveManager.h"
+
+#include <exception>
 
 #include <QRegExpValidator>
 #include <QFont>
@@ -14,7 +15,7 @@
 #define LE_TO_LI(lineEdit) (LongInt((lineEdit)->text().toStdString(), 16))
 #define LE_TO_P(lineEdit, curve) (Point((curve), (lineEdit)->text().toStdString()))
 #define SAFE_BEGIN try {
-#define SAFE_END } catch (int) {}
+#define SAFE_END } catch (std::exception &e) {}
 
 MainWindow::MainWindow(QWidget *) : ecc(ECC(Curve_parameters::curve_secp256k1())) {
     auto font = QFont("DejaVu");
@@ -43,10 +44,13 @@ MainWindow::MainWindow(QWidget *) : ecc(ECC(Curve_parameters::curve_secp256k1())
     layout->addWidget(label_shared, 8, 0);
     label_clear_text = new QLabel("clear text:");
     layout->addWidget(label_clear_text, 9, 0);
-    label_base64 = new QLabel("cyphered text:\n(base 64)");
-    layout->addWidget(label_base64, 11, 0);
+    label_cypher = new QLabel("cyphered text:\n(in hex)");
+    layout->addWidget(label_cypher, 11, 0);
     label_sign = new QLabel("sign:");
     layout->addWidget(label_sign, 12, 0);
+
+    label_sign_verify = new QLabel();
+    layout->addWidget(label_sign_verify, 12, 2);
 
     edit_a = new MyLineEdit();
     if (is_for_point[0])
@@ -90,9 +94,9 @@ MainWindow::MainWindow(QWidget *) : ecc(ECC(Curve_parameters::curve_secp256k1())
     edit_clear_text = new QTextEdit();
     edit_clear_text->setPlaceholderText("Insert message you want to encode here");
     layout->addWidget(edit_clear_text, 9, 1);
-    edit_base64 = new QTextEdit();
-    edit_base64->setPlaceholderText("Insert encrypted message in base64 here");
-    layout->addWidget(edit_base64, 11, 1);
+    edit_cypher = new QTextEdit();
+    edit_cypher->setPlaceholderText("Insert encrypted message in hex form here");
+    layout->addWidget(edit_cypher, 11, 1);
     edit_sign = new QTextEdit();
     edit_sign->setPlaceholderText("Field for signing message");
     layout->addWidget(edit_sign, 12, 1);
@@ -147,7 +151,7 @@ MainWindow::MainWindow(QWidget *) : ecc(ECC(Curve_parameters::curve_secp256k1())
     group_curve->setLayout(curves_layout);
     group_len->setLayout(len_layout);
 
-    layout->addLayout(buttons_layout, 0, 2, layout->rowCount(), 1);
+    layout->addLayout(buttons_layout, 0, 2, layout->rowCount() - 1, 1);
 
     setLayout(layout);
     setMinimumWidth(1360);
@@ -170,6 +174,8 @@ MainWindow::MainWindow(QWidget *) : ecc(ECC(Curve_parameters::curve_secp256k1())
     update_curve_edits();
     edit_private->setValue(256, ecc.get_private_key());
     edit_public->setValue(256, ecc.get_public_key());
+    edit_other_public->setValue(256, Point());
+    edit_shared->setValue(256, LongInt());
 //    void buttonLoadCurveSlot();
 //
 //    void buttonLoadKeyPairSlot();
@@ -262,7 +268,7 @@ void MainWindow::buttonEncodeSlot() {
     SAFE_BEGIN
         auto clear = edit_clear_text->toPlainText().toStdString();
         auto cypher = ecc.encode(clear);
-        edit_base64->setPlainText(QString::fromStdString(cypher));
+        edit_cypher->setPlainText(QString::fromStdString(cypher));
 
         auto[sign1, sign2] = ecc.sign_msg(clear);
         edit_sign->setPlainText(QString::fromStdString(sign1.to_string(36) + ';' + sign2.to_string(36)));
@@ -271,7 +277,7 @@ void MainWindow::buttonEncodeSlot() {
 
 void MainWindow::buttonDecodeSlot() {
     SAFE_BEGIN
-        auto cypher = edit_base64->toPlainText().toStdString();
+        auto cypher = edit_cypher->toPlainText().toStdString();
         auto clear = ecc.decode(cypher);
         edit_clear_text->setPlainText(QString::fromStdString(clear));
 
@@ -283,8 +289,7 @@ void MainWindow::buttonDecodeSlot() {
                         || ECC::verify_msg(clear, sign, ecc.get_public_key(), ecc.get_parameters());
         }
 
-//        InfoDialog res(is_signed ? "Sign is correct!" : "Sign is incorrect", this);
-//        res.open();
+        label_sign_verify->setText(is_signed ? "Sign is correct!" : "Sign is incorrect");
     SAFE_END
 }
 

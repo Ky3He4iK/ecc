@@ -36,8 +36,9 @@ private:
     QLabel *label_other_public;
     QLabel *label_shared;
     QLabel *label_clear_text;
-    QLabel *label_base64;
+    QLabel *label_cypher;
     QLabel *label_sign;
+    QLabel *label_sign_verify;
 
     MyLineEdit *edit_a;
     MyLineEdit *edit_b;
@@ -50,7 +51,7 @@ private:
     MyLineEdit *edit_shared;
 
     QTextEdit *edit_clear_text;
-    QTextEdit *edit_base64;
+    QTextEdit *edit_cypher;
     QTextEdit *edit_sign;
 
     QPushButton *button_generate_key;
