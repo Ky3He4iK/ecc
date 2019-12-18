@@ -18,7 +18,7 @@ private:
 public:
     explicit MyLineEdit(QWidget * = Q_NULLPTR);
 
-    void setValue(int bit_len, const QString &data, char for_point = 0);
+    void setValue(int bit_len, const QString &data, bool is_point = false);
 
     void setValue(int bit_len, const LongInt &data);
 

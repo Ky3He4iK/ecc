@@ -5,17 +5,23 @@
 #include "MyLineEdit.h"
 
 MyLineEdit::MyLineEdit(QWidget *) {
-    connect(this, &MyLineEdit::editingFinished, this, &MyLineEdit::changedSignal);
+    connect(this, &MyLineEdit::editingFinished, this, &MyLineEdit::editedSlot);
 }
 
-void MyLineEdit::setValue(int bit_len, const QString &data, char for_point) {
-    QString res(bit_len / 16 * 4 + (for_point ? 2 : 0), '0');
-    for (int i = data.size() - 1, j = res.size() - 1; i >= 0 && j >= 0; i--, j--)
-        res[j] = data[i];
-    if (for_point)
-        res[1] = for_point;
-    old = res;
-    setText(res);
+void MyLineEdit::setValue(int bit_len, const QString &data, bool is_point) {
+    if (is_point) {
+        setText(data);
+        old = text();
+        return;
+    }
+    auto s1 = QString();
+    if (bit_len != -1) {
+        auto d = bit_len - data.size() * 4;
+        for (size_t i = 0; i < d; i += 4)
+            s1.push_back('0');
+    }
+    setText(s1 + data);
+    old = text();
 }
 
 void MyLineEdit::setValue(int bit_len, const LongInt &data) {
@@ -23,7 +29,7 @@ void MyLineEdit::setValue(int bit_len, const LongInt &data) {
 }
 
 void MyLineEdit::setValue(int bit_len, const Point &data) {
-    setValue(bit_len, QString::fromStdString(data.get_x().to_string(16)), '2' + data.get_y().is_odd());
+    setValue(bit_len, QString::fromStdString(data.to_string(bit_len)), true);
 }
 
 void MyLineEdit::editedSlot() {

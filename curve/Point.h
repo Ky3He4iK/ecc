@@ -54,7 +54,7 @@ public:
 
     std::string to_human_string() const;
 
-    std::string to_string() const;
+    std::string to_string(int bit_len = -1) const;
 
     Point operator+(const Point &other) const;
 

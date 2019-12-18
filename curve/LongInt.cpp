@@ -5,6 +5,7 @@
 #include "LongInt.h"
 
 #include <utility>
+#include <random>
 
 #define num_mpz_t num.get_mpz_t()
 
@@ -225,9 +226,11 @@ LongInt LongInt::pow_and_mod(const LongInt &y, const LongInt &z) const {
 }
 
 LongInt LongInt::get_random(size_t bits_count) {
-    gmp_randclass r(gmp_randinit_default);
-    mpz_class res = r.get_z_bits(bits_count);
-    return LongInt(res);
+    std::random_device random;
+    LongInt res;
+    for (size_t i = 0; i <= bits_count; i++)
+        res = (res << 1) | (random() & 1);
+    return res;
 }
 
 LongInt LongInt::abs() const {

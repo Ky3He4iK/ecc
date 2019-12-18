@@ -124,19 +124,17 @@ MainWindow::MainWindow(QWidget *) : ecc(ECC(Curve_parameters::curve_secp256k1())
     auto curves_layout = new QVBoxLayout();
     auto manager = CurveManager::getInstance();
     std::set<int> lens;
+    int p = 0;
     for (auto &name: manager.getCurveNames()) {
         auto[curve, len] = manager.getCurve(name);
-        if (selected_curve == -1) {
-            selected_curve = 0;
-            set_len(len);
-            ecc = ECC(curve);
-            update_curve_edits();
-            buttonGenerateKeySlot();
+        if (name == "secp256k1") {
+            selected_curve = p;
         }
         lens.emplace(len);
         curve_options.push_back(new QPushButton(QString::fromStdString(name)));
         curves_layout->addWidget(*curve_options.rbegin());
         connect(*curve_options.rbegin(), &QPushButton::pressed, this, &MainWindow::groupCurvePressed);
+        p++;
     }
     curve_options.push_back(new QPushButton("custom"));
     curves_layout->addWidget(*curve_options.rbegin());
@@ -176,6 +174,10 @@ MainWindow::MainWindow(QWidget *) : ecc(ECC(Curve_parameters::curve_secp256k1())
     connect(button_encode, &QPushButton::pressed, this, &MainWindow::buttonEncodeSlot);
     connect(button_decode, &QPushButton::pressed, this, &MainWindow::buttonDecodeSlot);
 
+    set_len(256);
+    update_curve_edits();
+    edit_private->setValue(256, ecc.get_private_key());
+    edit_public->setValue(256, ecc.get_public_key());
 //    void buttonLoadCurveSlot();
 //
 //    void buttonLoadKeyPairSlot();
@@ -220,8 +222,10 @@ void MainWindow::set_len(int new_len) {
 void MainWindow::buttonGenerateKeySlot() {
     SAFE_BEGIN
         auto[priv, pub] = ECC::create_keys(ecc.get_parameters());
+        std::cerr << priv.to_string(16) << ' ' << pub.to_string() << '\n';
         edit_private->setValue(selected_len, priv);
-        editPrivateChanged();
+        edit_public->setValue(selected_len, pub);
+        ecc.set_keys(priv, pub);
     SAFE_END
 }
 

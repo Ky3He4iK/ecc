@@ -28,6 +28,7 @@ std::pair<Private_key, Public_key> ECC::create_keys(const Curve_parameters &para
     while (res.first == 0 || res.first >= parameters.curve_order)
         res.first = LongInt::get_random(parameters.curve_order.get_actual_bits()) % parameters.curve_order;
     res.second = Public_key(parameters.base_point * res.first);
+    std::cerr << res.first.to_string(16) << ' ' << res.second.to_string() << '\n';
     return res;
 }
 

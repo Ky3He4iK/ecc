@@ -180,10 +180,17 @@ std::string Point::to_human_string() const {
     return std::string("(") + x.to_string() + "; " + y.to_string() + ")";
 }
 
-std::string Point::to_string() const {
+std::string Point::to_string(int bit_len) const {
     if (is_inf)
         return "0";
-    return std::string("0") + (y.is_odd() ? '3' : '2') + x.to_string(16);
+    auto s1 = std::string("0") + (y.is_odd() ? '3' : '2');
+    auto s2 = x.to_string(16);
+    if (bit_len != -1) {
+        auto d = bit_len - s2.size() * 4;
+        for (size_t i = 0; i < d; i += 4)
+            s1.push_back('0');
+    }
+    return s1 + s2;
 }
 
 bool Point::operator==(const Point &other) const {
