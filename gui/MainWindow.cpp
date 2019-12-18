@@ -43,8 +43,6 @@ MainWindow::MainWindow(QWidget *) : ecc(ECC(Curve_parameters::curve_secp256k1())
     layout->addWidget(label_shared, 8, 0);
     label_clear_text = new QLabel("clear text:");
     layout->addWidget(label_clear_text, 9, 0);
-    label_cypher = new QLabel("cyphered text:");
-    layout->addWidget(label_cypher, 10, 0);
     label_base64 = new QLabel("cyphered text:\n(base 64)");
     layout->addWidget(label_base64, 11, 0);
     label_sign = new QLabel("sign:");
@@ -92,11 +90,8 @@ MainWindow::MainWindow(QWidget *) : ecc(ECC(Curve_parameters::curve_secp256k1())
     edit_clear_text = new QTextEdit();
     edit_clear_text->setPlaceholderText("Insert message you want to encode here");
     layout->addWidget(edit_clear_text, 9, 1);
-    edit_cypher = new QTextEdit();
-    edit_cypher->setPlaceholderText("Insert message you want to decode here");
-    layout->addWidget(edit_cypher, 10, 1);
     edit_base64 = new QTextEdit();
-    edit_base64->setPlaceholderText("Or insert encrypted message in base64 here");
+    edit_base64->setPlaceholderText("Insert encrypted message in base64 here");
     layout->addWidget(edit_base64, 11, 1);
     edit_sign = new QTextEdit();
     edit_sign->setPlaceholderText("Field for signing message");
@@ -166,9 +161,6 @@ MainWindow::MainWindow(QWidget *) : ecc(ECC(Curve_parameters::curve_secp256k1())
     connect(edit_private, &MyLineEdit::changedSignal, this, &MainWindow::editPrivateChanged);
     connect(edit_other_public, &MyLineEdit::changedSignal, this, &MainWindow::editOtherChanged);
 
-    connect(edit_cypher, &QTextEdit::textChanged, this, &MainWindow::editCypherChangedSlot);
-    connect(edit_base64, &QTextEdit::textChanged, this, &MainWindow::editBase64ChangedSlot);
-
     connect(button_generate_key, &QPushButton::pressed, this, &MainWindow::buttonGenerateKeySlot);
 
     connect(button_encode, &QPushButton::pressed, this, &MainWindow::buttonEncodeSlot);
@@ -199,6 +191,13 @@ MainWindow::MainWindow(QWidget *) : ecc(ECC(Curve_parameters::curve_secp256k1())
 
 void MainWindow::set_len(int new_len) {
     SAFE_BEGIN
+
+#define SET_LEN(edit, ind) { \
+    (edit)->setInputMask(QString(">") + (is_for_point[(ind)] ? point_prefix : int_prefix) + input_mask); \
+    if ((edit)->text().isEmpty()) \
+        (edit)->setText(QString(2 + input_mask.size(), '0')); \
+}
+
         selected_len = new_len;
         QString input_mask;
         for (int i = 0; i < new_len; i += 16)
@@ -206,15 +205,15 @@ void MainWindow::set_len(int new_len) {
         input_mask += ";O";
         auto point_prefix = "\\09 ";
         auto int_prefix = "   ";
-        edit_a->setInputMask(QString(">") + (is_for_point[0] ? point_prefix : int_prefix) + input_mask);
-        edit_b->setInputMask(QString(">") + (is_for_point[1] ? point_prefix : int_prefix) + input_mask);
-        edit_p->setInputMask(QString(">") + (is_for_point[2] ? point_prefix : int_prefix) + input_mask);
-        edit_base_point->setInputMask(QString(">") + (is_for_point[3] ? point_prefix : int_prefix) + input_mask);
-        edit_order->setInputMask(QString(">") + (is_for_point[4] ? point_prefix : int_prefix) + input_mask);
-        edit_private->setInputMask(QString(">") + (is_for_point[5] ? point_prefix : int_prefix) + input_mask);
-        edit_public->setInputMask(QString(">") + (is_for_point[6] ? point_prefix : int_prefix) + input_mask);
-        edit_other_public->setInputMask(QString(">") + (is_for_point[7] ? point_prefix : int_prefix) + input_mask);
-        edit_shared->setInputMask(QString(">") + (is_for_point[8] ? point_prefix : int_prefix) + input_mask);
+        SET_LEN(edit_a, 0)
+        SET_LEN(edit_b, 1)
+        SET_LEN(edit_p, 2)
+        SET_LEN(edit_base_point, 3)
+        SET_LEN(edit_order, 4)
+        SET_LEN(edit_private, 5)
+        SET_LEN(edit_public, 6)
+        SET_LEN(edit_other_public, 7)
+        SET_LEN(edit_shared, 8)
     SAFE_END
 }
 
@@ -262,8 +261,8 @@ void MainWindow::buttonSaveKeyPairSlot() {
 void MainWindow::buttonEncodeSlot() {
     SAFE_BEGIN
         auto clear = edit_clear_text->toPlainText().toStdString();
-        edit_cypher->setPlainText(QString::fromStdString(ecc.encode(clear)));
-        editCypherChangedSlot();
+        auto cypher = ecc.encode(clear);
+        edit_base64->setPlainText(QString::fromStdString(cypher));
 
         auto[sign1, sign2] = ecc.sign_msg(clear);
         edit_sign->setPlainText(QString::fromStdString(sign1.to_string(36) + ';' + sign2.to_string(36)));
@@ -272,7 +271,7 @@ void MainWindow::buttonEncodeSlot() {
 
 void MainWindow::buttonDecodeSlot() {
     SAFE_BEGIN
-        auto cypher = edit_clear_text->toPlainText().toStdString();
+        auto cypher = edit_base64->toPlainText().toStdString();
         auto clear = ecc.decode(cypher);
         edit_clear_text->setPlainText(QString::fromStdString(clear));
 
@@ -284,28 +283,8 @@ void MainWindow::buttonDecodeSlot() {
                         || ECC::verify_msg(clear, sign, ecc.get_public_key(), ecc.get_parameters());
         }
 
-        InfoDialog res(is_signed ? "Sign is correct!" : "Sign is incorrect", this);
-        res.open();
-    SAFE_END
-}
-
-void MainWindow::editCypherChangedSlot() {
-    SAFE_BEGIN
-        if (lock)
-            return;
-        lock = true;
-        edit_base64->setPlainText(edit_cypher->toPlainText().toUtf8().toBase64());
-        lock = false;
-    SAFE_END
-}
-
-void MainWindow::editBase64ChangedSlot() {
-    SAFE_BEGIN
-        if (lock)
-            return;
-        lock = true;
-        edit_cypher->setPlainText(QString(QByteArray::fromBase64(edit_base64->toPlainText().toUtf8())));
-        lock = false;
+//        InfoDialog res(is_signed ? "Sign is correct!" : "Sign is incorrect", this);
+//        res.open();
     SAFE_END
 }
 

@@ -110,7 +110,7 @@ std::string ECC::encode(std::string &msg) const {
     unsigned int len = 0;
     std::string res((char *) aes.EncryptECB((unsigned char *) msg.c_str(), msg.length(),
                                             (unsigned char *) shared_secret.to_bin_string().c_str(), len));
-    return res;
+    return bin_str_to_hex(res);
 }
 
 std::string ECC::decode(std::string &msg) const {
@@ -119,7 +119,8 @@ std::string ECC::decode(std::string &msg) const {
         return "";
     }
     AES aes(256);
-    std::string res((char *) aes.DecryptECB((unsigned char *) msg.c_str(), msg.length(),
+    auto raw = bin_str_from_hex(msg);
+    std::string res((char *) aes.DecryptECB((unsigned char *) raw.c_str(), raw.length(),
                                             (unsigned char *) shared_secret.to_bin_string().c_str()));
     return res;
 }
@@ -144,4 +145,43 @@ Public_key ECC::generatePublic(const Private_key &priv) {
     private_key = priv;
     public_key = parameters.base_point * priv;
     return public_key;
+}
+
+std::string ECC::bin_str_to_hex(const std::string &str) {
+    std::string res;
+    for (auto &c: str) {
+        res.push_back(itoc((c >> 4) & 0xf));
+        res.push_back(itoc(c & 0xf));
+    }
+    return res;
+}
+
+std::string ECC::bin_str_from_hex(const std::string &str) {
+    std::string res;
+    for (int i = 0; i < str.size();) {
+        int a = ctoi(str[i++]);
+        while (a == -1 && i < str.size())
+            a = ctoi(str[i++]);
+        if (i == str.size())
+            break;
+        int b = ctoi(str[i++]);
+        while (b == -1 && i < str.size())
+            b = ctoi(str[i++]);
+        if (i == str.size() && b == -1)
+            break;
+        res.push_back((a << 4) + b);
+    }
+    return res;
+}
+
+char ECC::itoc(int i) {
+    if (i < 0)
+        i += 16;
+    return (i < 10) ? i + '0' : i + 'A' - 10;
+}
+
+int ECC::ctoi(char c) {
+    return ((c >= '0' && c <= '9') ? c - '0' :
+            ((c <= 'Z' && c >= 'A') ? c - 'A' + 10 :
+             ((c <= 'z' && c >= 'a') ? c - 'a' + 10 : -1)));
 }

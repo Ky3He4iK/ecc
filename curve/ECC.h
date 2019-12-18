@@ -23,6 +23,14 @@ private:
     Curve_parameters parameters;
     Private_key shared_secret;
 
+    static char itoc(int i);
+
+    static int ctoi(char c);
+
+    static std::string bin_str_to_hex(const std::string &str);
+
+    static std::string bin_str_from_hex(const std::string &str);
+
 public:
     explicit ECC(const std::shared_ptr<EllipticCurve> &curve, const Point &_base_point);
 

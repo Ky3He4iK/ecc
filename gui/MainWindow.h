@@ -36,7 +36,6 @@ private:
     QLabel *label_other_public;
     QLabel *label_shared;
     QLabel *label_clear_text;
-    QLabel *label_cypher;
     QLabel *label_base64;
     QLabel *label_sign;
 
@@ -51,7 +50,6 @@ private:
     MyLineEdit *edit_shared;
 
     QTextEdit *edit_clear_text;
-    QTextEdit *edit_cypher;
     QTextEdit *edit_base64;
     QTextEdit *edit_sign;
 
@@ -73,8 +71,6 @@ private:
     std::bitset<9> is_for_point = {0b011001000};
     int selected_curve = -1;
     int selected_len = 256;
-
-    bool lock = false;
 
     void set_len(int new_len);
 
@@ -101,10 +97,6 @@ private slots:
     void buttonEncodeSlot();
 
     void buttonDecodeSlot();
-
-    void editCypherChangedSlot();
-
-    void editBase64ChangedSlot();
 
     void groupCurvePressed();
 
