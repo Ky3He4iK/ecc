@@ -54,15 +54,7 @@ public:
 
     [[nodiscard]] LongInt get_saved_curve_order() const;
 
-    [[nodiscard]] LongInt fast_curve_order(const Point &base_point) const;
-
     void set_curve_order(const Point &base_point, const LongInt &order);
-
-    [[nodiscard]] Point get_base_point() const;
-
-    std::pair<LongInt, Point> generate_keypair(const Point &point);
-
-    static EllipticCurve getSECP256k1();
 };
 
 //#include "Point.cpp"

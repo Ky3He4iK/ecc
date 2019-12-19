@@ -45,8 +45,6 @@ public:
         return is_inf;
     }
 
-    bool on_curve() const;
-
     static Point inf_point(const std::shared_ptr<EllipticCurve> &curve);
 
     std::shared_ptr<EllipticCurve> get_curve() const;

@@ -56,8 +56,6 @@ public:
 
     static std::pair<Private_key, Public_key> create_keys(const Curve_parameters &parameters);
 
-    Public_key generatePublic(const Private_key &priv);
-
     void set_private_key(const Private_key &key);
 
     [[nodiscard]] Public_key get_public_key() const;

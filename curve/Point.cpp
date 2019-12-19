@@ -170,12 +170,6 @@ Point Point::operator-(const Point &other) const {
     return *this + (-other);
 }
 
-// Returns true if the given point lies on the elliptic curve
-bool Point::on_curve() const {
-    return is_inf || curve == nullptr ||
-           ((y * y - x * x * x - curve->get_a() * x - curve->get_b()) % curve->get_p() == 0);
-}
-
 std::string Point::to_human_string() const {
     if (is_inf)
         return "Infinity";

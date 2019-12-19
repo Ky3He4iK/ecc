@@ -92,6 +92,7 @@ private:
     void update_curve_edits();
 
     static nlohmann::json findInJson(const std::string &name, const nlohmann::json &node);
+
 public:
 
     explicit MainWindow(QWidget * = Q_NULLPTR);

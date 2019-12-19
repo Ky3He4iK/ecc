@@ -49,32 +49,6 @@ bool EllipticCurve::contains(const Point &point) const {
              (point.get_x() * a).abs() + b.abs()) % p);
 }
 
-EllipticCurve EllipticCurve::getSECP256k1() {
-    EllipticCurve curve(LongInt(), LongInt(7),
-                        LongInt("0xFFFFFFFF_FFFFFFFF_FFFFFFFF_FFFFFFFF_FFFFFFFF_FFFFFFFF_FFFFFFFE_FFFFFC2F", 16));
-    LongInt x("79BE667E F9DCBBAC 55A06295 CE870B07 029BFCDB 2DCE28D9 59F2815B 16F81798", 16);
-    Point point = curve.get_point_by_x(x, false);
-    curve.set_curve_order(point,
-                          LongInt("FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFE BAAEDCE6 AF48A03B BFD25E8C D0364141", 16));
-    ASSERT_(point.get_y() ==
-            LongInt("483ADA77 26A3C465 5DA4FBFC 0E1108A8 FD17B448 A6855419 9C47D08F FB10D4B8", 16),
-            "Base point is wrong!")
-    return curve;
-}
-
-/*
- * Generate a keypair using the point P of order n on the given curve. The private key is a
- * positive integer d smaller than n, and the public key is Q = dP.
- */
-std::pair<LongInt, Point> EllipticCurve::generate_keypair(const Point &point) {
-    LongInt d;
-    while (d == 0 || d >= curve_order)
-        d = LongInt::get_random(curve_order.get_actual_bits()) % curve_order;
-    Point Q = point * d;
-    return {d, Q};
-}
-
-
 // for each X there is two Y on curve, odd and even.
 LongInt EllipticCurve::get_y(const LongInt &x, bool is_odd) const {
     LongInt _a = (x.pow_and_mod(LongInt(3), p) + 7) % p; // a = ( ( ( (x^3) mod n ) ax^2 + bx + c ) mod n )
@@ -106,12 +80,6 @@ LongInt EllipticCurve::get_curve_order(const Point &_base_point) const {
     return order;
 }
 
-LongInt EllipticCurve::fast_curve_order(const Point &_base_point) const {
-    if (*base_point == _base_point)
-        return curve_order;
-    return get_curve_order(_base_point);
-}
-
 void EllipticCurve::set_curve_order(const Point &_base_point, const LongInt &_curve_order) {
     base_point = std::make_shared<Point>(_base_point);
     curve_order = _curve_order;
@@ -119,12 +87,6 @@ void EllipticCurve::set_curve_order(const Point &_base_point, const LongInt &_cu
 
 bool EllipticCurve::is_valid() const {
     return (a.pow_and_mod(LongInt(3), p) * 4 + b * b * 27) % p != 0;
-}
-
-Point EllipticCurve::get_base_point() const {
-    if (base_point)
-        return *base_point;
-    return Point();
 }
 
 LongInt EllipticCurve::get_saved_curve_order() const {

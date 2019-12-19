@@ -23,6 +23,10 @@ ECC::ECC(const Curve_parameters &_parameters) : parameters(_parameters) {
     public_key = keys.second;
 }
 
+/*
+ * Generate a keypair using the point P of order n on the given curve. The private key is a
+ * positive integer d smaller than n, and the public key is Q = dP.
+ */
 std::pair<Private_key, Public_key> ECC::create_keys(const Curve_parameters &parameters) {
     std::pair<Private_key, Public_key> res;
     while (res.first == 0 || res.first >= parameters.curve_order)
@@ -142,12 +146,6 @@ void ECC::set_keys(const Private_key &priv, const Public_key &pub) {
 
 std::shared_ptr<EllipticCurve> ECC::get_curve() const {
     return public_key.get_curve();
-}
-
-Public_key ECC::generatePublic(const Private_key &priv) {
-    private_key = priv;
-    public_key = parameters.base_point * priv;
-    return public_key;
 }
 
 std::string ECC::bin_str_to_hex(const std::string &str) {

@@ -22,6 +22,7 @@ private:
     explicit LongInt(mpz_class init);
 
     static char itoc(int i);
+
     static int ctoi(char c);
 
 public:

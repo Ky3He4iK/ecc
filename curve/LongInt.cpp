@@ -72,7 +72,7 @@ int LongInt::to_int() const {
 }
 
 size_t LongInt::get_actual_bits() const {
-    //todo
+    //todo: optimize?
     LongInt tmp(*this);
     size_t res = 0;
     while (tmp != 0) {
