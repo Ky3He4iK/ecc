@@ -233,6 +233,7 @@ void MainWindow::buttonLoadCurveSlot() {
         file_lock(1);
         auto file_path = QFileDialog::getOpenFileName(this, "Select curve", "",
                                                       "Json curve (*.json.curve *.json.ecc) ;; All files (*)");
+        file_unlock();
         if (!file_path.isNull()) {
             QFile file(file_path);
             if (file.open(QIODevice::ReadOnly | QIODevice::Text)) {
@@ -240,7 +241,6 @@ void MainWindow::buttonLoadCurveSlot() {
                 update_curve_edits();
             }
         }
-        file_unlock();
     SAFE_END
 }
 
@@ -251,17 +251,19 @@ void MainWindow::buttonLoadKeyPairSlot() {
         file_lock(2);
         auto file_path = QFileDialog::getOpenFileName(this, "Select key", "",
                                                       "Json keys (*.json.priv *.json.pair) ;; All files (*)");
+        file_unlock();
         if (!file_path.isNull()) {
             QFile file(file_path);
             if (file.open(QIODevice::ReadOnly | QIODevice::Text)) {
-                auto json = nlohmann::json(file.readAll().toStdString());
-                std::cerr << json.dump() << '\n';
+                auto json = nlohmann::json::parse(file.readAll().toStdString());
+                std::cerr << json.dump(4) << '\n';
                 auto found = findInJson("private_key", json);
-                if (!found.is_null())
+                if (!found.is_null()) {
                     edit_private->setValue(selected_len, LongInt(found.get<std::string>(), 16));
+                    editPrivateChanged();
+                }
             }
         }
-        file_unlock();
     SAFE_END
 }
 
@@ -272,11 +274,12 @@ void MainWindow::buttonLoadOtherSlot() {
         file_lock(3);
         auto file_path = QFileDialog::getOpenFileName(this, "Select key", "",
                                                       "Json keys (*.json.priv *.json.pair *.json.pub) ;; All files (*)");
+        file_unlock();
         if (!file_path.isNull()) {
             QFile file(file_path);
             if (file.open(QIODevice::ReadOnly | QIODevice::Text)) {
-                auto json = nlohmann::json(file.readAll().toStdString());
-                std::cerr << json.dump() << '\n';
+                auto json = nlohmann::json::parse(file.readAll().toStdString());
+                std::cerr << json.dump(4) << '\n';
                 auto found = findInJson("public_key", json);
                 if (found.is_null()) {
                     found = findInJson("private_key", json);
@@ -292,7 +295,6 @@ void MainWindow::buttonLoadOtherSlot() {
                 }
             }
         }
-        file_unlock();
     SAFE_END
 }
 
@@ -303,6 +305,7 @@ void MainWindow::buttonSaveCurveSlot() {
         file_lock(4);
         auto file_path = QFileDialog::getSaveFileName(this, "Save curve", "",
                                                       "Json curve (*.json.ecc) ;; All files (*)");
+        file_unlock();
         if (!file_path.isNull()) {
             QFile file(file_path);
             if (file.open(QIODevice::WriteOnly | QIODevice::Text)) {
@@ -310,7 +313,6 @@ void MainWindow::buttonSaveCurveSlot() {
                 out << ecc.serialize().c_str();
             }
         }
-        file_unlock();
     SAFE_END
 }
 
@@ -321,6 +323,7 @@ void MainWindow::buttonSaveKeyPairSlot() {
         file_lock(5);
         auto file_path = QFileDialog::getSaveFileName(this, "Save key", "",
                                                       "Json key pair (*.json.pair) ;; Json private key (*.json.priv) ;; Json public key (*.json.pub) ;; All files (*)");
+        file_unlock();
         if (!file_path.isNull()) {
             QFile file(file_path);
             if (file.open(QIODevice::WriteOnly | QIODevice::Text)) {
@@ -333,7 +336,7 @@ void MainWindow::buttonSaveKeyPairSlot() {
                     case QChar('b').unicode(): { //public
                         auto x = QString::fromStdString(ecc.get_public_key().get_x().to_string(16));
                         auto y = QString::fromStdString(ecc.get_public_key().get_y().to_string(16));
-                        out << R"({ "public_key": { "x": )" << x << R"(, "y": ")" << y << "\" } }";
+                        out << R"({ "public_key": { "x": ")" << x << R"(", "y": ")" << y << "\" } }";
                         break;
                     }
                     case QChar('r').unicode(): // pair (default)
@@ -341,16 +344,17 @@ void MainWindow::buttonSaveKeyPairSlot() {
                         auto pr = QString::fromStdString(ecc.get_private_key().to_string(16));
                         auto x = QString::fromStdString(ecc.get_public_key().get_x().to_string(16));
                         auto y = QString::fromStdString(ecc.get_public_key().get_y().to_string(16));
-                        out << R"({ "private_key": ")" << pr << R"(",
-"public_key": {
-    "x": ")" << x << R"(",
-    "y": ")" << y << R"("
+                        out << R"({
+    "private_key": ")" << pr << R"(",
+    "public_key": {
+        "x": ")" << x << R"(",
+        "y": ")" << y << R"("
+    }
 })";
                         break;
                 }
             }
         }
-        file_unlock();
     SAFE_END
 }
 
