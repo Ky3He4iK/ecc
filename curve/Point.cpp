@@ -256,3 +256,9 @@ Point::Point(const std::shared_ptr<EllipticCurve> &_curve, const std::string &he
 std::shared_ptr<EllipticCurve> Point::get_curve() const {
     return curve;
 }
+
+Point Point::deserialize(const nlohmann::json &json, const std::shared_ptr<EllipticCurve> &_curve) {
+    auto x = LongInt(json["x"].get<std::string>(), 16);
+    auto y = LongInt(json["y"].get<std::string>(), 16);
+    return Point(_curve, x, y);
+}

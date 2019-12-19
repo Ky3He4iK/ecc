@@ -11,6 +11,7 @@
 #include <QRegExpValidator>
 #include <QFont>
 #include <set>
+#include <QtCore/QTextStream>
 
 #define LE_TO_LI(lineEdit) (LongInt((lineEdit)->text().toStdString(), 16))
 #define LE_TO_P(lineEdit, curve) (Point((curve), (lineEdit)->text().toStdString()))
@@ -230,7 +231,13 @@ void MainWindow::buttonLoadCurveSlot() {
         if (file_lock_state != 0)
             return;
         file_lock(1);
-        //todo
+        auto file_path = QFileDialog::getOpenFileName(this, "Select curve", "",
+                                                      "Json curve (*.json.curve *.json.ecc) ;; All files (*)");
+        if (!file_path.isNull()) {
+            QFile file(file_path);
+            ecc = ECC(Curve_parameters::deserialize(file.readAll().toStdString()));
+            update_curve_edits();
+        }
         file_unlock();
     SAFE_END
 }
@@ -240,13 +247,14 @@ void MainWindow::buttonLoadKeyPairSlot() {
         if (file_lock_state != 0)
             return;
         file_lock(2);
-        auto file_path = QFileDialog::getOpenFileName(this, "Select key", "", "Json keys (*.json.pub *.json.priv *.json.pair ;; All files (*)");
+        auto file_path = QFileDialog::getOpenFileName(this, "Select key", "",
+                                                      "Json keys (*.json.priv *.json.pair) ;; All files (*)");
         if (!file_path.isNull()) {
             QFile file(file_path);
             auto json = nlohmann::json(file.readAll().toStdString());
             auto found = findInJson("private_key", json);
-            if (found != 0)
-                edit_private->setValue(selected_len, found);
+            if (!found.is_null())
+                edit_private->setValue(selected_len, LongInt(found.get<std::string>(), 16));
         }
         file_unlock();
     SAFE_END
@@ -257,8 +265,25 @@ void MainWindow::buttonLoadOtherSlot() {
         if (file_lock_state != 0)
             return;
         file_lock(3);
-//        file_selector->setFileMode(QFileDialog::FileMode::ExistingFile);
-        //todo
+        auto file_path = QFileDialog::getOpenFileName(this, "Select key", "",
+                                                      "Json keys (*.json.priv *.json.pair *.json.pub) ;; All files (*)");
+        if (!file_path.isNull()) {
+            QFile file(file_path);
+            auto json = nlohmann::json(file.readAll().toStdString());
+            auto found = findInJson("public_key", json);
+            if (found.is_null()) {
+                found = findInJson("private_key", json);
+                if (!found.is_null()) {
+                    auto ecc2 = ECC(ecc.get_parameters());
+                    ecc2.set_private_key(LongInt(found.get<std::string>(), 16));
+                    edit_other_public->setValue(selected_len, ecc2.get_public_key());
+                    editOtherChanged();
+                }
+            } else {
+                edit_other_public->setValue(selected_len, Point::deserialize(found, ecc.get_curve()));
+                editOtherChanged();
+            }
+        }
         file_unlock();
     SAFE_END
 }
@@ -268,8 +293,14 @@ void MainWindow::buttonSaveCurveSlot() {
         if (file_lock_state != 0)
             return;
         file_lock(4);
-//        file_selector->setFileMode(QFileDialog::FileMode::AnyFile);
-        //todo
+        auto file_path = QFileDialog::getSaveFileName(this, "Save curve", "",
+                                                      "Json curve (*.json.ecc) ;; All files (*)");
+        QFile file(file_path);
+        if (!file.open(QIODevice::WriteOnly | QIODevice::Text))
+            return;
+
+        QTextStream out(&file);
+        out << ecc.serialize().c_str();
         file_unlock();
     SAFE_END
 }
@@ -279,8 +310,34 @@ void MainWindow::buttonSaveKeyPairSlot() {
         if (file_lock_state != 0)
             return;
         file_lock(5);
-//        file_selector->setFileMode(QFileDialog::FileMode::AnyFile);
-        //todo
+        auto file_path = QFileDialog::getSaveFileName(this, "Save key", "",
+                                                      "Json key pair (*.json.pair) ;; Json private key (*.json.priv) ;; Json public key (*.json.pub) ;; All files (*)");
+        QFile file(file_path);
+        if (!file.open(QIODevice::WriteOnly | QIODevice::Text))
+            return;
+        QTextStream out(&file);
+        switch (file_path[file_path.size() - 1].toLower().unicode()) {
+            case QChar('v').unicode(): //private
+                out << R"({ "private_key": ")" << QString::fromStdString(ecc.get_private_key().to_string(16)) << "\" }";
+                break;
+            case QChar('b').unicode(): { //public
+                auto x = QString::fromStdString(ecc.get_public_key().get_x().to_string(16));
+                auto y = QString::fromStdString(ecc.get_public_key().get_y().to_string(16));
+                out << R"({ "public_key": { "x": )" << x << R"(, "y": ")" << y << "\" } }";
+                break;
+            }
+            case QChar('r').unicode(): // pair (default)
+            default:
+                auto pr = QString::fromStdString(ecc.get_private_key().to_string(16));
+                auto x = QString::fromStdString(ecc.get_public_key().get_x().to_string(16));
+                auto y = QString::fromStdString(ecc.get_public_key().get_y().to_string(16));
+                out << R"({ "private_key": ")" << pr << R"(",
+"public_key": {
+    "x": ")" << x << R"(",
+    "y": ")" << y << R"("
+})";
+                break;
+        }
         file_unlock();
     SAFE_END
 }
@@ -374,6 +431,13 @@ void MainWindow::update_curve_edits() {
     edit_p->setValue(selected_len, ecc.get_parameters().get_p());
     edit_base_point->setValue(selected_len, ecc.get_parameters().get_base_point());
     edit_order->setValue(selected_len, ecc.get_parameters().get_order());
+
+    auto priv = ecc.get_private_key();
+    if (priv != 0)
+        edit_private->setValue(selected_len, priv);
+    auto pub = ecc.get_public_key();
+    if (!pub.get_inf())
+        edit_public->setValue(selected_len, pub);
 }
 
 void MainWindow::file_lock(int state) {
@@ -398,16 +462,16 @@ void MainWindow::file_unlock() {
     SAFE_END
 }
 
-LongInt MainWindow::findInJson(const std::string &name, const nlohmann::json &node) {
+nlohmann::json MainWindow::findInJson(const std::string &name, const nlohmann::json &node) {
     auto v = node.find(name);
     if (v != node.end())
-        return LongInt((*v).get<std::string>(), 16);
+        return *v;
     for (auto &item: node) {
         if (item.is_object()) {
             auto r = findInJson(name, item);
-            if (r != 0)
+            if (!r.is_null())
                 return r;
         }
     }
-    return LongInt(0);
+    return nlohmann::json();
 }

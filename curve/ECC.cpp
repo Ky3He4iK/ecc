@@ -94,11 +94,14 @@ std::string ECC::serialize() const {
 ECC ECC::deserialize(const std::string &data) {
     auto ecc = nlohmann::json::parse(data);
     auto parametes = Curve_parameters::deserialize(ecc["parameters"]);
-    auto public_key = Public_key(std::make_shared<EllipticCurve>(parametes.create_curve()),
-                                 LONG_INT_FROM_JSON(ecc["public_key"]["x"]),
-                                 LONG_INT_FROM_JSON(ecc["public_key"]["y"]));
-    auto private_key = Private_key(ecc["private_key"].get<std::string>(), 16);
-    return ECC(private_key, public_key, parametes);
+    if (ecc.contains("public_key") && ecc.contains("private_key")) {
+        auto public_key = Public_key(std::make_shared<EllipticCurve>(parametes.create_curve()),
+                                     LONG_INT_FROM_JSON(ecc["public_key"]["x"]),
+                                     LONG_INT_FROM_JSON(ecc["public_key"]["y"]));
+        auto private_key = Private_key(ecc["private_key"].get<std::string>(), 16);
+        return ECC(private_key, public_key, parametes);
+    } else
+        return ECC(parametes);
 }
 
 std::string ECC::encode(std::string &msg) const {

@@ -11,6 +11,7 @@
 
 #include "EllipticCurve.h"
 #include "LongInt.h"
+#include "../dependences/json.hpp"
 
 class EllipticCurve;
 
@@ -33,6 +34,8 @@ public:
     Point(const Point &other) = default;
 
     Point();
+
+    static Point deserialize(const nlohmann::json &json, const std::shared_ptr<EllipticCurve> &_curve);
 
     static std::array<LongInt, 3> extended_gcd(const LongInt &a, const LongInt &b);
 
