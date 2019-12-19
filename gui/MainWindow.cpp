@@ -173,29 +173,18 @@ MainWindow::MainWindow(QWidget *) : ecc(ECC(Curve_parameters::curve_secp256k1())
     connect(button_encode, &QPushButton::pressed, this, &MainWindow::buttonEncodeSlot);
     connect(button_decode, &QPushButton::pressed, this, &MainWindow::buttonDecodeSlot);
 
+    connect(button_load_curve, &QPushButton::pressed, this, &MainWindow::buttonLoadCurveSlot);
+    connect(button_load_key_pair, &QPushButton::pressed, this, &MainWindow::buttonLoadKeyPairSlot);
+    connect(button_load_other, &QPushButton::pressed, this, &MainWindow::buttonLoadOtherSlot);
+    connect(button_save_curve, &QPushButton::pressed, this, &MainWindow::buttonSaveCurveSlot);
+    connect(button_save_key_pair, &QPushButton::pressed, this, &MainWindow::buttonSaveKeyPairSlot);
+
     set_len(256);
     update_curve_edits();
     edit_private->setValue(256, ecc.get_private_key());
     edit_public->setValue(256, ecc.get_public_key());
     edit_other_public->setValue(256, Point());
     edit_shared->setValue(256, LongInt());
-//    void buttonLoadCurveSlot();
-//
-//    void buttonLoadKeyPairSlot();
-//
-//    void buttonLoadOtherSlot();
-//
-//    void buttonSaveCurveSlot();
-//
-//    void buttonSaveKeyPairSlot();
-//
-//    void buttonEncodeSlot();
-//
-//    void buttonDecodeSlot();
-//
-//    void groupCurvePressed();
-//
-//    void groupLenPressed();
 }
 
 void MainWindow::set_len(int new_len) {
@@ -226,7 +215,6 @@ void MainWindow::set_len(int new_len) {
     SAFE_END
 }
 
-
 void MainWindow::buttonGenerateKeySlot() {
     SAFE_BEGIN
         auto[priv, pub] = ECC::create_keys(ecc.get_parameters());
@@ -239,31 +227,61 @@ void MainWindow::buttonGenerateKeySlot() {
 
 void MainWindow::buttonLoadCurveSlot() {
     SAFE_BEGIN
+        if (file_lock_state != 0)
+            return;
+        file_lock(1);
         //todo
+        file_unlock();
     SAFE_END
 }
 
 void MainWindow::buttonLoadKeyPairSlot() {
     SAFE_BEGIN
-        //todo
+        if (file_lock_state != 0)
+            return;
+        file_lock(2);
+        auto file_path = QFileDialog::getOpenFileName(this, "Select key", "", "Json keys (*.json.pub *.json.priv *.json.pair ;; All files (*)");
+        if (!file_path.isNull()) {
+            QFile file(file_path);
+            auto json = nlohmann::json(file.readAll().toStdString());
+            auto found = findInJson("private_key", json);
+            if (found != 0)
+                edit_private->setValue(selected_len, found);
+        }
+        file_unlock();
     SAFE_END
 }
 
 void MainWindow::buttonLoadOtherSlot() {
     SAFE_BEGIN
+        if (file_lock_state != 0)
+            return;
+        file_lock(3);
+//        file_selector->setFileMode(QFileDialog::FileMode::ExistingFile);
         //todo
+        file_unlock();
     SAFE_END
 }
 
 void MainWindow::buttonSaveCurveSlot() {
     SAFE_BEGIN
+        if (file_lock_state != 0)
+            return;
+        file_lock(4);
+//        file_selector->setFileMode(QFileDialog::FileMode::AnyFile);
         //todo
+        file_unlock();
     SAFE_END
 }
 
 void MainWindow::buttonSaveKeyPairSlot() {
     SAFE_BEGIN
+        if (file_lock_state != 0)
+            return;
+        file_lock(5);
+//        file_selector->setFileMode(QFileDialog::FileMode::AnyFile);
         //todo
+        file_unlock();
     SAFE_END
 }
 
@@ -356,4 +374,40 @@ void MainWindow::update_curve_edits() {
     edit_p->setValue(selected_len, ecc.get_parameters().get_p());
     edit_base_point->setValue(selected_len, ecc.get_parameters().get_base_point());
     edit_order->setValue(selected_len, ecc.get_parameters().get_order());
+}
+
+void MainWindow::file_lock(int state) {
+    SAFE_BEGIN
+        file_lock_state = state;
+        button_save_curve->setEnabled(false);
+        button_load_key_pair->setEnabled(false);
+        button_load_other->setEnabled(false);
+        button_save_curve->setEnabled(false);
+        button_save_key_pair->setEnabled(false);
+    SAFE_END
+}
+
+void MainWindow::file_unlock() {
+    SAFE_BEGIN
+        file_lock_state = 0;
+        button_save_curve->setEnabled(true);
+        button_load_key_pair->setEnabled(true);
+        button_load_other->setEnabled(true);
+        button_save_curve->setEnabled(true);
+        button_save_key_pair->setEnabled(true);
+    SAFE_END
+}
+
+LongInt MainWindow::findInJson(const std::string &name, const nlohmann::json &node) {
+    auto v = node.find(name);
+    if (v != node.end())
+        return LongInt((*v).get<std::string>(), 16);
+    for (auto &item: node) {
+        if (item.is_object()) {
+            auto r = findInJson(name, item);
+            if (r != 0)
+                return r;
+        }
+    }
+    return LongInt(0);
 }

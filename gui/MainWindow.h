@@ -15,6 +15,7 @@
 #include <QString>
 #include <QVector>
 #include <QRadioButton>
+#include <QFileDialog>
 
 #include "../curve/ECC.h"
 #include "MyLineEdit.h"
@@ -74,10 +75,23 @@ private:
     int selected_curve = -1;
     int selected_len = 256;
 
+    // 0 - free
+    // 1 - load curve
+    // 2 - load key
+    // 3 - load other
+    // 4 - save curve
+    // 5 - save key
+    int file_lock_state = 0;
+
+    void file_lock(int state);
+
+    void file_unlock();
+
     void set_len(int new_len);
 
     void update_curve_edits();
 
+    static LongInt findInJson(const std::string &name, const nlohmann::json &node);
 public:
 
     explicit MainWindow(QWidget * = Q_NULLPTR);
